@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="国画系统相关知识">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SIFT特征提取">
+<meta property="og:url" content="http://example.com/2020/10/05/SIFT%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="国画系统相关知识">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://img-blog.csdn.net/20171011194630113?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="https://img-blog.csdn.net/20171011195906092?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="https://img-blog.csdn.net/20171011211708356?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="og:image" content="https://img-blog.csdn.net/20171011213937664?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+<meta property="article:published_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:modified_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="图像处理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdn.net/20171011194630113?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast">
+
+<link rel="canonical" href="http://example.com/2020/10/05/SIFT%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>SIFT特征提取 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/05/SIFT%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SIFT特征提取
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-05 21:06:36" itemprop="dateCreated datePublished" datetime="2020-10-05T21:06:36+08:00">2020-10-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">国画系统相关知识</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="SIFT特征提取"><a href="#SIFT特征提取" class="headerlink" title="SIFT特征提取"></a>SIFT特征提取</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>尺度不变特征转换(Scale-invariant feature transform或SIFT)是一种电脑视觉的算法用来侦测与描述影像中的局部性特征，它在空间尺度中寻找极值点，并提取出其位置、尺度、旋转不变量，此算法由 David Lowe在1999年所发表，2004年完善总结。</p>
+<h3 id="基本步骤"><a href="#基本步骤" class="headerlink" title="基本步骤"></a>基本步骤</h3><p>SIFT的基本步骤有：</p>
+<ol>
+<li>尺度空间极值检测</li>
+<li>关键点定位</li>
+<li>关键点方向参数</li>
+<li>关键点描述符</li>
+<li>关键点匹配</li>
+</ol>
+<h3 id="尺度空间极值检测"><a href="#尺度空间极值检测" class="headerlink" title="尺度空间极值检测"></a>尺度空间极值检测</h3><p>通俗的讲，尺度空间就是图像在不同的分辨率下的样式，再回到尺度空间，在摄像头中，计算机无法分辨一个景物的尺度信息。而人眼不同，除了人大脑里已经对物体有了基本的概念，比如你在几十米外可以认出一个苹果，你把苹果放在眼前也能认出这是一个苹果，所以这两者是在不同的尺度空间内的，我们把不同尺度空间下的图像堆叠在一起，就叫做<strong>图像金字塔</strong></p>
+<p>![](D:\Day Day Up\MyBlog\source\images\01.png)</p>
+<p>所以只要把不同的尺度空间下的图像制作成图像金字塔，那就可以将计算机模拟人眼实现不同分辨率下的物体识别</p>
+<p>那么这个事情在SIFT中交给高斯核的方程来构建了，简单来讲高斯核函数的参数有三个G(x,y,σ)，其中的σ就是所谓的“”尺度空间“，σ越小，就相当于图片越小，所以被模糊的也就越少。所以，大尺度图片可以对应成一个图像离远处观看，是个大致轮廓，小尺度图片可以对应成离近处观看，有更多细节。</p>
+<h3 id="高斯金字塔"><a href="#高斯金字塔" class="headerlink" title="高斯金字塔"></a>高斯金字塔</h3><p>构建了尺度空间以后，需要找到关键点，所以要实现一个高斯金字塔来实现对关键点的提取。高斯金字塔中每一层都是一个图像，代表着不同尺度空间下的图像，每一层的σ不同代表尺度空间。</p>
+<p><img src="https://img-blog.csdn.net/20171011194630113?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast"></p>
+<h3 id="高斯差分金字塔DOG"><a href="#高斯差分金字塔DOG" class="headerlink" title="高斯差分金字塔DOG"></a>高斯差分金字塔DOG</h3><p>将上面的每相邻两层的图像做差，得到的图像叠成一个金字塔，就是高斯差分金字塔</p>
+<h3 id="DOG局部特征点检测"><a href="#DOG局部特征点检测" class="headerlink" title="DOG局部特征点检测"></a>DOG局部特征点检测</h3><p>有了差分金字塔，现在便可以计算关键点（特征点）。由于金字塔的模型不是二维模型，而是一个三维模型，这里计算极值的方法也不再是二维求取极值的方法。</p>
+<p>计算一个某一个点是否是局部最大值，在离散的三维空间当中，以该点为中心，检测它周围的点。类似魔方的中心位置一样，如下图中的“叉”就是待计算是否是局部极值点。</p>
+<p><img src="https://img-blog.csdn.net/20171011195906092?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast"></p>
+<p>这里说明，局部极值点都是在同一个组当中进行的，所以肯定有这样的问题，某一组当中的第一个图和最后一个图层没有前一张图和下一张图，那该怎么计算？ 解决办法是，在用高斯模糊，在高斯金字塔多“模糊”出三张来凑数，所以在DOG中多出两张。</p>
+<h3 id="关键点定位"><a href="#关键点定位" class="headerlink" title="关键点定位"></a>关键点定位</h3><p>这个步骤就是需要处理一些不太稳定的特征点，就是那些低对比度的或者不稳定的边界点</p>
+<h3 id="关键点设定方向参数"><a href="#关键点设定方向参数" class="headerlink" title="关键点设定方向参数"></a>关键点设定方向参数</h3><p><img src="https://img-blog.csdn.net/20171011211708356?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast"></p>
+<h3 id="关键点描述符"><a href="#关键点描述符" class="headerlink" title="关键点描述符"></a>关键点描述符</h3><p>设置了方向参数以后，就获得了旋转不变性</p>
+<p>接下来对每个关键点用一组向量将这个关键点描述出来，使其不随着光照、视角等等影响而改变。该描述符不但涉及关键点，而且还涉及到关键点周围的像素，使其有更强的不变特性。</p>
+<p>基本原理是选取关键点周围16×16的像素区域，分成4个小块，每个小块创建8个bin的直方图，这总共的128个信息的向量就是关键点描述符的主要内容。此外还要测量，以达到光照、旋转的稳定性。如图</p>
+<p><img src="https://img-blog.csdn.net/20171011213937664?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast"></p>
+<h3 id="关键点匹配"><a href="#关键点匹配" class="headerlink" title="关键点匹配"></a>关键点匹配</h3><p>分别对模板图和实时图建立关键点描述符集合，通过对比关键点描述符来判断两个关键点是否相同。128个信息的向量使用欧氏距离来实现。</p>
+<p>在关键点的匹配当中，使用的搜索算法为区域搜索算法当中最常用的k-d树实现。</p>
+<p>比较之后，需要在进行消除错配点才算完成。</p>
+<h3 id="词袋模型"><a href="#词袋模型" class="headerlink" title="词袋模型"></a>词袋模型</h3><p>所谓的词袋模型就是将一张图片的特征点进行聚类，比如kmeans聚类，然后将不同的特征点聚类到n个生成的词典（n个聚类中心）中，这样就形成了很多的”词袋“。当一张图片进行比对的时候，就可以统计每个特征点落在不同字典的次数（也就是统计词频），这样以后就可以判断两张图片的相似度了。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" rel="tag"># 图像处理</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/05/Session%E8%B7%9FCookie%E7%9A%84%E6%95%85%E4%BA%8B(%E4%B8%80)/" rel="prev" title="Session跟Cookie的故事(一)">
+      <i class="fa fa-chevron-left"></i> Session跟Cookie的故事(一)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/05/Python%E5%9F%BA%E7%A1%80---%E5%88%97%E8%A1%A8/" rel="next" title="Python基础---列表">
+      Python基础---列表 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#SIFT%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96"><span class="nav-number">1.</span> <span class="nav-text">SIFT特征提取</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.2.</span> <span class="nav-text">基本步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%BA%E5%BA%A6%E7%A9%BA%E9%97%B4%E6%9E%81%E5%80%BC%E6%A3%80%E6%B5%8B"><span class="nav-number">1.3.</span> <span class="nav-text">尺度空间极值检测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E6%96%AF%E9%87%91%E5%AD%97%E5%A1%94"><span class="nav-number">1.4.</span> <span class="nav-text">高斯金字塔</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E6%96%AF%E5%B7%AE%E5%88%86%E9%87%91%E5%AD%97%E5%A1%94DOG"><span class="nav-number">1.5.</span> <span class="nav-text">高斯差分金字塔DOG</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DOG%E5%B1%80%E9%83%A8%E7%89%B9%E5%BE%81%E7%82%B9%E6%A3%80%E6%B5%8B"><span class="nav-number">1.6.</span> <span class="nav-text">DOG局部特征点检测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E5%AE%9A%E4%BD%8D"><span class="nav-number">1.7.</span> <span class="nav-text">关键点定位</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E8%AE%BE%E5%AE%9A%E6%96%B9%E5%90%91%E5%8F%82%E6%95%B0"><span class="nav-number">1.8.</span> <span class="nav-text">关键点设定方向参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="nav-number">1.9.</span> <span class="nav-text">关键点描述符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E5%8C%B9%E9%85%8D"><span class="nav-number">1.10.</span> <span class="nav-text">关键点匹配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%8D%E8%A2%8B%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.11.</span> <span class="nav-text">词袋模型</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

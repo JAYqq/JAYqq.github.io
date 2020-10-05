@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="《网络是怎样连接的》笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP&#x2F;IP传输 协议栈与网卡（二）">
+<meta property="og:url" content="http://example.com/2020/10/05/TCPIP%E4%BC%A0%E8%BE%93%20%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E7%BD%91%E5%8D%A1%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="《网络是怎样连接的》笔记">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2019/08/12/B4twU5i61Cv827M.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/12/Pt4xXgsILm9TFrz.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/12/gCYKoRqZmjvskcJ.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/12/z2a7khOSxN6FUEJ.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/12/tsANIkdan9oDcZi.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/14/qsIcOJyd4YFQHmh.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/14/ku8IB7VcSJgsvxE.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/14/LuWG7l3tjwDAf8Z.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/14/HVgkdahlEsKNYT3.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/14/Fa2hzDZEu493ITi.png">
+<meta property="article:published_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:modified_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="网络">
+<meta property="article:tag" content="TCP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2019/08/12/B4twU5i61Cv827M.png">
+
+<link rel="canonical" href="http://example.com/2020/10/05/TCPIP%E4%BC%A0%E8%BE%93%20%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E7%BD%91%E5%8D%A1%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>TCP/IP传输 协议栈与网卡（二） | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/05/TCPIP%E4%BC%A0%E8%BE%93%20%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E7%BD%91%E5%8D%A1%EF%BC%88%E4%B8%80%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TCP/IP传输 协议栈与网卡（二）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-05 21:06:36" itemprop="dateCreated datePublished" datetime="2020-10-05T21:06:36+08:00">2020-10-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">计算机网络</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">《网络是怎样连接的》笔记</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="第二章-TCP-IP传输-协议栈与网卡（一）"><a href="#第二章-TCP-IP传输-协议栈与网卡（一）" class="headerlink" title="第二章 TCP/IP传输 协议栈与网卡（一）"></a>第二章 TCP/IP传输 协议栈与网卡（一）</h2><p>首先我们知道，客户端会委托操作系统完成数据的传输，操作系统中的协议栈帮了很多忙，所以这里会探索协议栈内部是如何处理数据和传输数据的</p>
+<h3 id="2-1创建套接字"><a href="#2-1创建套接字" class="headerlink" title="2.1创建套接字"></a>2.1创建套接字</h3><p><strong>协议栈的内部：</strong></p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/12/B4twU5i61Cv827M.png"><img src="https://i.loli.net/2019/08/12/B4twU5i61Cv827M.png" alt="11.png"></a></p>
+<p>由上到下各个部分会委派工作给下级</p>
+<p>应用程序下面是Socket库，其中包括解析器，解析器用来向DNS服务器发送查询信息</p>
+<p>操作系统内部包括协议栈。协议栈上半部分包含TCP和UDP两部分，一般浏览器、邮件等都是TCP传输，而DNS查询都是UDP传输。</p>
+<p>下面一半是IP模块，这是用来发送网络包的模块。包含ICMP和ARP协议，关于两种协议后面再讲。</p>
+<p><strong>套接字的实体</strong></p>
+<p>套接字本身是一个比较抽象的概念，如果非要给一个实体，协议栈内部有一块存放控制信息的内存空间，记录了用于控制通信操作的控制信息，例如通信对象的I端口、通信操作的状态等。所以这个内存空间就是套接字的实体</p>
+<p>协议栈在执行操作的时候需要参考这个控制信息，就像需要知道对方的IP、端口，才能找到对方的位置发送数据。还比如协议栈在发送了数据以后，可能会出现丢包的情况，所以套接字也就是控制信息中需要记录是否已经接收到响应以及已经过了多少时间，参考这些信息协议栈才决定是否需要重新发送数据。</p>
+<p>在windows中可以用命令netstat查看套接字的实体：</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/12/Pt4xXgsILm9TFrz.png"><img src="https://i.loli.net/2019/08/12/Pt4xXgsILm9TFrz.png" alt="12.PNG"></a></p>
+<p><strong>调用socket时的操作</strong></p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/12/gCYKoRqZmjvskcJ.png"><img src="https://i.loli.net/2019/08/12/gCYKoRqZmjvskcJ.png" alt="13.png"></a></p>
+<p>我们参考上图。</p>
+<p>①创建套接字阶段</p>
+<p>协议栈会根据应用程序的申请执行创建套接字。协议栈首先会分配一个内存空间存放套接字，这里面要放上控制信息，但是现在时刚开始，所以只需要放上一些初始信息就可以了。然后协议栈会把这个套接字的描述符告诉应用程序，接下来收发数据的时候应用程序只需要出示这个描述符给协议栈，协议栈就能找到对应的套接字，并且因为套接字中已经储存了IP、端口信息，所以不再需要应用程序每次都重新告诉协议栈这些信息了。</p>
+<h3 id="2-2连接服务器"><a href="#2-2连接服务器" class="headerlink" title="2.2连接服务器"></a>2.2连接服务器</h3><p>套接字刚刚创建完的时候，里面没有存放东西，即便应用要发送数据，协议栈也不知道发给谁。服务器那边也是，创建了套接字也不知道和谁通信。所以这里需要②connect操作。客户端需要告诉服务器：“我是XXX端口是XXX，我想和你通信”，发送请求通信信息也是连接的目的之一。</p>
+<p>可见，连接也是交换控制信息的过程，因为控制信息里面保存着必要的信息，两者交换的控制信息时按照通信规则来确定的，只要按照规则就能成功交换并“读得懂”对方的控制信息，不会因为操作系统的不同而导致交换失败。</p>
+<p>连接操作的时候也会分配出一块缓冲区用于后面数据收发的暂时数据存放。</p>
+<p><strong>负责保存控制信息的头部</strong></p>
+<p>控制信息可以分为两类</p>
+<p>第一类是<strong>客户端和服务器相互联络时交换的控制信息</strong></p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/12/z2a7khOSxN6FUEJ.png"><img src="https://i.loli.net/2019/08/12/z2a7khOSxN6FUEJ.png" alt="14.png"></a></p>
+<p>这些都是TCP协议中定义的控制信息，这些只要是以TCP通信的基础上，连接、收发、断开都是需要这些控制信息。这些控制信息会被加到网络包的开头：</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/12/tsANIkdan9oDcZi.png"><img src="https://i.loli.net/2019/08/12/tsANIkdan9oDcZi.png" alt="15.png"></a></p>
+<p>头部就是用来记录和交换控制信息的。</p>
+<p>还有一类控制信息<strong>保存在套接字中</strong>，用来控制协议栈操作，之前有说过。应用程序传递来的信息以及通信对象接受到的信息都会保存在这里</p>
+<p><strong>连接操作的实际过程</strong></p>
+<p> connect(&lt;描述符&gt;,&lt;服务器IP和端口&gt;)</p>
+<p>这些信息会传递给协议栈中的TCP模块，TCP模块才能与对方服务器的TCP模块交换控制信息。这个交互过程主要下面的步骤：</p>
+<ol>
+<li>客户端创建一个TCP头部，就像上面的表格，主要是发送方和接收方的IP、端口，这样客户端的套接字就找到了对方的套接字，然后把头部中的控制位SYN设置1，表示连接</li>
+<li>TCP模块将信息传递给IP模块委托它发送，然后服务器上的IP模块收到信息以后会转交给服务器的TCP模块，TCP模块在信息的头部找到端口号，然后按照这个端口号找到对应的处于等待状态的套接字。找到以后，把该套接字状态改为<strong>正在连接</strong>。然后服务器会把响应按照刚才客户端的操作一样发送给客户端的IP模块，也要修改头部信息中的IP、端口等，还要把ACK设为1表示已经收到。</li>
+<li>信息到达客户端的IP模块、TCP模块，然后胡检测头部信息确认是否连接成功，成功以后会向套接字中写入服务器的IP地址、端口等信息，然后将状态设置成连接完毕</li>
+<li>最后其实客户端也要将头部信息ACK设置为1，重新发回给服务器才算完成。</li>
+</ol>
+<p>这样connect操作才算完成，控制流程被交回应用程序。</p>
+<h3 id="收发数据"><a href="#收发数据" class="headerlink" title="收发数据"></a>收发数据</h3><p>控制流程回到应用程序以后，就要调用Socket库的write()方法委托协议栈发送数据了。</p>
+<p>注意，协议栈发送数据不是一拿到数据就发送的，而是先将数据放在缓冲区，等放到一定数量了才会发送出去，而这个数量不是死的，而是根据操作系统和版本会变，但都是根据下面几点来权衡的：</p>
+<ol>
+<li>每个网络包能容纳的长度。MTU是一个网络包的最大长度，是包含头部长度的，所以MTU减去头部长度就是数据长度，叫做MSS</li>
+<li>时间。协议栈内部有一个计时器，如果等待缓冲的时间太长，就会直接发送出去，而不再等到数据长度接近MSS。</li>
+</ol>
+<p>应用程序也可以指定协议栈发送的方式是马上发送还是缓冲发送，像浏览器这样的会话型应用就是直接发送的。</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/14/qsIcOJyd4YFQHmh.png"><img src="https://i.loli.net/2019/08/14/qsIcOJyd4YFQHmh.png" alt="16.png"></a></p>
+<p><strong>对较大的数据进行拆分</strong></p>
+<p>如果请求的数据很大的话，就需要以MSS为标准进行拆分。根据拆分情况，如果在需要发送的时候就加上TCP头部，并加上套接字中记录的IP和端口号，交给IP模块发送。</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/14/ku8IB7VcSJgsvxE.png"><img src="https://i.loli.net/2019/08/14/ku8IB7VcSJgsvxE.png" alt="17.png"></a></p>
+<p><strong>使用ACK号确认网络包已经收到</strong></p>
+<p>TCP模块拆分大数据的时候，会先算好每一块数据相当于从头开始的第几字节，然后发送这个数据块时将字节数放在TCP头部的“序号”字段（可以看前面的表格）。然后发送数据的长度也要告知接收方，但是这个不放在头部，因为数据包总长度减去头部长就是数据块长度。这样可以检查出有没有丢包，比如上一个包序号从120开始，后一个从121那么就是对的，如果是240那么就不对了。</p>
+<p>接收方会将收到数据是总数据的第几字节返回给发送方，这个数值就是TCP头部的ACK。</p>
+<p>很形象的是，客户端：“现在发送的是从第XXX字节开始的数据，一共有XXX字节”，服务器：“到XXX字节的数据我已经收到”。服务器说的XXX字节就是服务器返回的ACK</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/14/LuWG7l3tjwDAf8Z.png"><img src="https://i.loli.net/2019/08/14/LuWG7l3tjwDAf8Z.png" alt="18.png"></a></p>
+<p>另外，序号不一定是从1开始的，而是随机分配的，那么这个随机分配的初始值应该在连接操作时就告诉接收方，所以我们记得我们的connect阶段是有将SYN设置成1，这里设置成1的同时还要设置字段的序号的值也就是初始值。同样客户端也需要知道服务器的初始字段序号，过程是一样的。</p>
+<p>双方交换序号和ACK的connect过程如图所示：</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/14/HVgkdahlEsKNYT3.png"><img src="https://i.loli.net/2019/08/14/HVgkdahlEsKNYT3.png" alt="19.png"></a></p>
+<p>双方发送数据的过程如下：</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/14/Fa2hzDZEu493ITi.png"><img src="https://i.loli.net/2019/08/14/Fa2hzDZEu493ITi.png" alt="20.png"></a></p>
+<p>双方发送数据的时候都会携带序号发送出去，通过返回的ACK号就可以确定对方是否收到了数据，在得到对方的确认之前，发送的数据都会在发送缓冲区，如果对方没返回对应的ACK号，那么就重新发送。</p>
+<p><strong>根据网络包平均往返时间调整ACK号等待时间</strong></p>
+<p>比如当网络繁忙时，ACK返回比较慢，如果ACK等待时间太短，就可能出现数据包重复传递情况。这时候需要等待时间长一些，但是如果太长的话，就会影响重传效率，影响网速</p>
+<p>所以TCP通过动态调整，在发送数据过程持续测量ACK返回时间，如果变慢了，就延长等待，如果变快了，就缩短。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag"># 网络</a>
+              <a href="/tags/TCP/" rel="tag"># TCP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/05/TCPIP%E4%BC%A0%E8%BE%93%20%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E7%BD%91%E5%8D%A1%EF%BC%88%E4%BA%8C%EF%BC%89/" rel="prev" title="TCP/IP传输 协议栈与网卡（二）">
+      <i class="fa fa-chevron-left"></i> TCP/IP传输 协议栈与网卡（二）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/05/Session%E8%B7%9FCookie%E7%9A%84%E6%95%85%E4%BA%8B(%E4%BA%8C)/" rel="next" title="Session跟Cookie的故事(二)">
+      Session跟Cookie的故事(二) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0-TCP-IP%E4%BC%A0%E8%BE%93-%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E7%BD%91%E5%8D%A1%EF%BC%88%E4%B8%80%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">第二章 TCP&#x2F;IP传输 协议栈与网卡（一）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1%E5%88%9B%E5%BB%BA%E5%A5%97%E6%8E%A5%E5%AD%97"><span class="nav-number">1.1.</span> <span class="nav-text">2.1创建套接字</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2%E8%BF%9E%E6%8E%A5%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">1.2.</span> <span class="nav-text">2.2连接服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%B6%E5%8F%91%E6%95%B0%E6%8D%AE"><span class="nav-number">1.3.</span> <span class="nav-text">收发数据</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

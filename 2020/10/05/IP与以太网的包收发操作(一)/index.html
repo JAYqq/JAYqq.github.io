@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="《网络是怎样连接的》笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IP与以太网的包收发操作(一)">
+<meta property="og:url" content="http://example.com/2020/10/05/IP%E4%B8%8E%E4%BB%A5%E5%A4%AA%E7%BD%91%E7%9A%84%E5%8C%85%E6%94%B6%E5%8F%91%E6%93%8D%E4%BD%9C(%E4%B8%80)/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="《网络是怎样连接的》笔记">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/BV3ZvsqokXLWSCe.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/iTa9Jz43xXpeHLr.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/glJ21BuM6HznRAh.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/kOlsExVKT2GNdAZ.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/sUhtJy57pgaN2Zd.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/HLxKT5jOfGicFba.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/oYzVkPnZAFMjlLx.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/zAkgv7RMx93dm4C.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/N5woLJf4ebEdqFH.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/2PwYoc3lFQMVfSK.png">
+<meta property="og:image" content="https://i.loli.net/2019/09/18/YoegslJz2hNuZAQ.png">
+<meta property="article:published_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:modified_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="网络">
+<meta property="article:tag" content="TCP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2019/09/18/BV3ZvsqokXLWSCe.png">
+
+<link rel="canonical" href="http://example.com/2020/10/05/IP%E4%B8%8E%E4%BB%A5%E5%A4%AA%E7%BD%91%E7%9A%84%E5%8C%85%E6%94%B6%E5%8F%91%E6%93%8D%E4%BD%9C(%E4%B8%80)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>IP与以太网的包收发操作(一) | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/05/IP%E4%B8%8E%E4%BB%A5%E5%A4%AA%E7%BD%91%E7%9A%84%E5%8C%85%E6%94%B6%E5%8F%91%E6%93%8D%E4%BD%9C(%E4%B8%80)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          IP与以太网的包收发操作(一)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-05 21:06:36" itemprop="dateCreated datePublished" datetime="2020-10-05T21:06:36+08:00">2020-10-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">计算机网络</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">《网络是怎样连接的》笔记</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="包的定义"><a href="#包的定义" class="headerlink" title="包的定义"></a>包的定义</h3><p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/BV3ZvsqokXLWSCe.png"><img src="https://i.loli.net/2019/09/18/BV3ZvsqokXLWSCe.png" alt="26.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/iTa9Jz43xXpeHLr.png"><img src="https://i.loli.net/2019/09/18/iTa9Jz43xXpeHLr.png" alt="27.png"></a></p>
+<p>发送方网络设备创建包，生成含有正确控制信息的头部，通过转发设备发送出去，转发设备中有路由表</p>
+<ul>
+<li>路由器根据目标地址判断下一个路由器位置</li>
+<li>集线器在子网中将网络包传输到下一个路由</li>
+</ul>
+<p>其中重要的两个头部：</p>
+<ol>
+<li>MAC头部</li>
+<li>IP头部</li>
+</ol>
+<p>IP协议根据IP头部中的IP信息找到传输方向，委托以太网发送的时候，IP协议会查找下一个路由器以太网地址（MAC地址），写入MAC头部。所以MAC头部时不断被改写的，根据路由器的路由表的找到系啊一个路由器的MAC地址。</p>
+<h3 id="包的收发"><a href="#包的收发" class="headerlink" title="包的收发"></a>包的收发</h3><p>IP模块只是整个数据包的起点，数据包通过集线器、路由器才能正确发送到接收端。</p>
+<p>TCP模块一开始委托IP模块发送数据，TCP模块要告诉清楚发送给谁，IP模块在整个数据包前面加上IP头部</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/glJ21BuM6HznRAh.png"><img src="https://i.loli.net/2019/09/18/glJ21BuM6HznRAh.png" alt="28.png"></a></p>
+<p>加上这两个头部就是IP模块的工作。</p>
+<p>然后包就会经过网络硬件，网卡将他们转换成光信号通过光纤或网线传输出去。</p>
+<p>接收的过程和发送的过程是相反的，信息先以电信号的形式从网线传输进来，然后由网卡将其转换为数字信息并传递给 IP 模块。</p>
+<p>接下来，IP 模块会将 MAC 头部和 IP 头部后面的内容，也就是 TCP 头部加上数据块，传递给 TCP 模块。</p>
+<p>接下来的操作就是我们之前讲过的 TCP 模块负责的部分了。</p>
+<p>注意这边IP模块的工作仅仅是收发工作，不进行错误处理比如只有TCP头部但是没有数据啊，它只会将数据包作为二进制储存起来，收或者发。</p>
+<h3 id="生成含接收方地址的IP头部"><a href="#生成含接收方地址的IP头部" class="headerlink" title="生成含接收方地址的IP头部"></a>生成含接收方地址的IP头部</h3><p>IP信息一开始是从应用程序来，然后再建立连接的时候告诉了TCP模块，TCP模块委托IP模块发送的时候IP才知道的。</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/kOlsExVKT2GNdAZ.png"><img src="https://i.loli.net/2019/09/18/kOlsExVKT2GNdAZ.png" alt="29.png"></a></p>
+<p><strong>如何判断把包交给哪块网卡</strong></p>
+<p>和路由器使用 IP 表判断下一个路由器位置的操作是一样的。</p>
+<p>因为协议栈的 IP 模块与路由器中负责包收发的部分都是根据 IP 协议规则来进行包收发操作的，所以它们也都用相同的方法来判断把包发送给谁。</p>
+<p><strong>查看路由表</strong></p>
+<p>这个“IP 表”叫作路由表，我们将在第 3 章探索路由器时详细介绍它的用法，这里先简单讲个大概。</p>
+<p>如图 2.18 所示，我们可以通过 route print命令来显示路由表。</p>
+<p><strong>Network Destination 网络目标列</strong></p>
+<p>例如TCP 模块告知的目标 IP 地址为 192.168.1.21，那么就和第 6 行的 192.168.1 的部分相匹配。</p>
+<p><strong>Interface 网络接口列</strong></p>
+<p>表示网卡等网络接口，这些网络接口可以将包发送给通信对象。</p>
+<p><strong>Gateway 网关列</strong></p>
+<p>表示下一个路由器的 IP 地址，将包发给这个 IP 地址，该地址对应的路由器就会将包转发到目标地址。</p>
+<p><strong>默认网关</strong></p>
+<p>路由表的第 1 行中，目标地址和子网掩码都是 0.0.0.0，这表示默认网关，如果其他所有条目都无法匹配，就会自动匹配这一行。</p>
+<p>这样一来，我们就可以判断出应该使用哪块网卡来发送包了，然后就可以在 IP 头部的发送方 IP 地址中填上这块网卡对应的 IP 地址。</p>
+<p><strong>TCP/UDP协议号</strong></p>
+<p>接下来还需要填写协议号，它表示包的内容是来自哪个模块的。</p>
+<p>例如，如果是 TCP 模块委托的内容，则设置为 06（十六进制），如果是 UDP 模块委托的内容，则设置为 17（十六进制），这些值都是按照规则来设置的。</p>
+<p>在现在我们使用的浏览器中，HTTP 请求消息都是通过 TCP 来传输的，因此这里就会填写表示 TCP 的 06（十六进制）。</p>
+<p>其他字段内也需要填写相应的值，但对大局没什么影响，我们会在第3 章进行介绍，这里就先省略了。</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/sUhtJy57pgaN2Zd.png"><img src="https://i.loli.net/2019/09/18/sUhtJy57pgaN2Zd.png" alt="30.png"></a></p>
+<h3 id="生成以太网用户MAC头部"><a href="#生成以太网用户MAC头部" class="headerlink" title="生成以太网用户MAC头部"></a>生成以太网用户MAC头部</h3><p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/HLxKT5jOfGicFba.png"><img src="https://i.loli.net/2019/09/18/HLxKT5jOfGicFba.png" alt="31.png"></a></p>
+<ul>
+<li>IP头部时32比特，但是MAC时48比特。</li>
+<li>MAC地址是生产网卡的时候放在网卡的ORM中的，读取一下就可以。后面会讲。</li>
+<li>最终接收方MAC地址是无法一步得到的，所以一开始的MAC接收方地址是根据上面路由表的Gateway栏的内容确定的，然后再不断改变</li>
+</ul>
+<h3 id="利用ARP查询目标路由器的MAC地址"><a href="#利用ARP查询目标路由器的MAC地址" class="headerlink" title="利用ARP查询目标路由器的MAC地址"></a>利用ARP查询目标路由器的MAC地址</h3><p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/oYzVkPnZAFMjlLx.png"><img src="https://i.loli.net/2019/09/18/oYzVkPnZAFMjlLx.png" alt="32.png"></a></p>
+<p>ARP是一种广播的形式，因为我们可以根据路由表知道我们需要发送系啊一个路由器的IP地址，所以我们只要利用ARP问一下：“IP是XXXX的MAC地址是啥？”就可以了。如果对方和自己再一个子网中，就可以查到MAC，并记录下来了</p>
+<p>为了避免每次发送都要ARP广播一下，就有ARP缓存，但是当IP地址发生变化的时候，缓存信息就不准了，所以ARP会过几分钟删除一下</p>
+<p>以太网和IP一样，不关心网络包的实际内容。</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/zAkgv7RMx93dm4C.png"><img src="https://i.loli.net/2019/09/18/zAkgv7RMx93dm4C.png" alt="33.png"></a></p>
+<ul>
+<li>网卡的ORM中保存着世界上唯一的MAC地址</li>
+<li>网卡中保存的MAC地址会由网卡驱动程序读取并交给MAC模块</li>
+</ul>
+<h3 id="网卡是如何将包转换成电信号并发送到网线中的"><a href="#网卡是如何将包转换成电信号并发送到网线中的" class="headerlink" title="网卡是如何将包转换成电信号并发送到网线中的"></a>网卡是如何将包转换成电信号并发送到网线中的</h3><p><strong>网卡驱动将包复制到缓冲区</strong></p>
+<p>网卡驱动从 IP 模块获取包之后，会将其复制到网卡内的缓冲区中，然后向MAC 模块发送发送包的命令。</p>
+<p><strong>MAC模块将包取出</strong></p>
+<p>接下来MAC 模块会将包从缓冲区中取出，并在开头加上报头和起始帧分界符，在末尾加上用于检测错误的帧校验序列（图 2.24）。</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/N5woLJf4ebEdqFH.png"><img src="https://i.loli.net/2019/09/18/N5woLJf4ebEdqFH.png" alt="34.png"></a></p>
+<p>报头是一串像 10101010…这样 1 和 0 交替出现的比特序列，长度为 56比特，它的作用是确定包的读取时机。</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/2PwYoc3lFQMVfSK.png"><img src="https://i.loli.net/2019/09/18/2PwYoc3lFQMVfSK.png" alt="35.png"></a></p>
+<p>用电信号来表达数字信息时，我们用 0 和 1 两种比特分别对应特定的电压和电流。</p>
+<p>连续出现111或000的信号，由于电压和电流没有变化，我们没办法判断出其中每个比特到底应该从哪里去切分。</p>
+<p>这时候就需要一个时钟信号</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/18/YoegslJz2hNuZAQ.png"><img src="https://i.loli.net/2019/09/18/YoegslJz2hNuZAQ.png" alt="36.png"></a></p>
+<p>这两种信号叠加在一起，发送方将这样的信号发给接收方。找到时钟信号的变化周期，就可以从信号c中提取出时钟信号b，通过接收信号c和时钟信号b计算出数据信号a。然后根据时钟信号b的变化周期，从数据信号a中读取相应的电压和电流值，并将其还原为 0 或 1 的比特了。</p>
+<p><strong>使用报头判断时钟信号的变化周期</strong></p>
+<p>时钟信号是以10Mbit/s或者100Mbit/s 这种固定频率进行变化的，</p>
+<p>我们不能一开始就发送包的数据，而是要在前面加上一段用来测量时钟信号的特殊信号，<strong>这就是报头的作用。</strong></p>
+<p>以太网根据速率和网线类型的不同分为多种派生方式，每种方式的信号形态也有差异。并不都是像本例中讲的这样，单纯通过电压和电流来表达 0 和 1 的。</p>
+<p>因此，101010…这样的报头数字信息在转换成电信号后，其波形也不一定都是图 2.25 中的那个样子，而是根据方式的不同而不同。但是，报头的作用和基本思路是一致的。</p>
+<p><strong>使用起始帧分界符标记包起始位置</strong></p>
+<p>报头后面的起始帧分界符在图 2.25 中也已经画出来了，它的末尾比特排列有少许变化。</p>
+<p>接收方以这一变化作为标记，从这里开始提取网络包数据。也就是说，起始帧分界符是一个用来表示包起始位置的标记。</p>
+<p><strong>使用FCS帧校验序列检查数据错误</strong></p>
+<p>末尾的 FCS（帧校验序列）用来检查包传输过程中因噪声导致的波形紊乱、数据错误。</p>
+<p>它是一串 32 比特的序列，是通过一个公式对包中从头到尾的所有内容进行计算而得出来的。</p>
+<p>在包传输过程中，如果受到噪声的干扰而导致其中的数据发生了变化，那么接收方计算出的 FCS 和发送方计算出的 FCS 就会不同，这样我们就可以判断出数据有没有错误。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag"># 网络</a>
+              <a href="/tags/TCP/" rel="tag"># TCP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/05/GIT%E5%88%86%E6%94%AF%E7%AE%A1%E7%90%86/" rel="prev" title="GIT分支管理">
+      <i class="fa fa-chevron-left"></i> GIT分支管理
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/05/Flask%E4%B8%AD%E7%9A%84MongoEngine(%E4%BA%8C)---%E6%93%8D%E4%BD%9C%E6%95%B0%E6%8D%AE/" rel="next" title="Flask中的MongoEngine(二)---操作数据">
+      Flask中的MongoEngine(二)---操作数据 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%85%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-number">1.</span> <span class="nav-text">包的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%85%E7%9A%84%E6%94%B6%E5%8F%91"><span class="nav-number">2.</span> <span class="nav-text">包的收发</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E5%90%AB%E6%8E%A5%E6%94%B6%E6%96%B9%E5%9C%B0%E5%9D%80%E7%9A%84IP%E5%A4%B4%E9%83%A8"><span class="nav-number">3.</span> <span class="nav-text">生成含接收方地址的IP头部</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E4%BB%A5%E5%A4%AA%E7%BD%91%E7%94%A8%E6%88%B7MAC%E5%A4%B4%E9%83%A8"><span class="nav-number">4.</span> <span class="nav-text">生成以太网用户MAC头部</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8ARP%E6%9F%A5%E8%AF%A2%E7%9B%AE%E6%A0%87%E8%B7%AF%E7%94%B1%E5%99%A8%E7%9A%84MAC%E5%9C%B0%E5%9D%80"><span class="nav-number">5.</span> <span class="nav-text">利用ARP查询目标路由器的MAC地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E5%8D%A1%E6%98%AF%E5%A6%82%E4%BD%95%E5%B0%86%E5%8C%85%E8%BD%AC%E6%8D%A2%E6%88%90%E7%94%B5%E4%BF%A1%E5%8F%B7%E5%B9%B6%E5%8F%91%E9%80%81%E5%88%B0%E7%BD%91%E7%BA%BF%E4%B8%AD%E7%9A%84"><span class="nav-number">6.</span> <span class="nav-text">网卡是如何将包转换成电信号并发送到网线中的</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

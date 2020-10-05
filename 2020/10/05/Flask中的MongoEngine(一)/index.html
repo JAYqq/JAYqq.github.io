@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Flask相关">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flask中的MongoEngine(一)">
+<meta property="og:url" content="http://example.com/2020/10/05/Flask%E4%B8%AD%E7%9A%84MongoEngine(%E4%B8%80)/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Flask相关">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:modified_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="Flask，数据库">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2020/10/05/Flask%E4%B8%AD%E7%9A%84MongoEngine(%E4%B8%80)/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Flask中的MongoEngine(一) | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/05/Flask%E4%B8%AD%E7%9A%84MongoEngine(%E4%B8%80)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Flask中的MongoEngine(一)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-05 21:06:36" itemprop="dateCreated datePublished" datetime="2020-10-05T21:06:36+08:00">2020-10-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">Web开发</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">Flask相关</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>MongoDB是现在最流行的NoSQL数据库，也是在Flask中支持度最好的NoSQL数据库，它是一个和强大的文档数据库，文档储存在集合(collection)中，可以把相似的文档集合在一起。文档是由叫做BSON的格式来定义的，BSON是JSON的超集，BSON允许把JSON变成二进制储存，节省大量的空间。而MongoEngine是MongoDB的ORM，是很好用的python中的ORM之一</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>首先需要安装MongoDB，自行搜索官网安装</p>
+<p>然后用pip安装MongoEngine：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install Flask-MongoEngine</span><br></pre></td></tr></table></figure>
+
+<p>并且需要初始化：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">app&#x3D;Flask(__name__)</span><br><span class="line">mongo&#x3D;MongoEngine()</span><br><span class="line">mongo.init_app(app)</span><br></pre></td></tr></table></figure>
+
+<p>还需要在config.py配置参数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MONGODB_SETTINGS&#x3D;&#123;</span><br><span class="line">    &#39;db&#39;:&#39;local&#39;,</span><br><span class="line">    &#39;host&#39;:&#39;localhost&#39;,</span><br><span class="line">    &#39;port&#39;:27017</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="字段类型"><a href="#字段类型" class="headerlink" title="字段类型"></a>字段类型</h2><p>为了博客不要显得太累赘，<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/1e409f70fe4c">请参考</a></p>
+<p>其中的DynamicField可以接收任何形式的子段，可以用作一对多数据库的设计，具体见下文</p>
+<h2 id="文档类型"><a href="#文档类型" class="headerlink" title="文档类型"></a>文档类型</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">class Post(mongo.Document):</span><br><span class="line">    title&#x3D;StringField(request&#x3D;True)</span><br><span class="line">    text&#x3D;StringField()</span><br><span class="line">    publish_date&#x3D;DateTimeField(</span><br><span class="line">        default&#x3D;datetime.now()</span><br><span class="line">    )</span><br><span class="line">    def __repr__(self):</span><br><span class="line">        return &quot;&lt;Post   &#39;&#123;&#125;&#39;&gt;&quot;.format(self.title)</span><br></pre></td></tr></table></figure>
+
+<p>有三种</p>
+<ol>
+<li><p>mongo.Document继承</p>
+<p>只有在类中定义了的键会被保存到数据库中，定义过的键比如上面的title可以为空，其他没有定义过的键就会被忽略</p>
+</li>
+<li><p>mongo.DynamicDocument继承</p>
+<p>没有定义过的子段就会被定义成是DynamicField子段，也就是可以代表任何值的子段，并且会被保存到文档中</p>
+</li>
+<li><p>EmbeddedDocument继承</p>
+<p>事实上是一种内嵌的类型，可以由上面的字段类型中的EmbeddedDocumentField来表示</p>
+</li>
+</ol>
+<h2 id="meta属性"><a href="#meta属性" class="headerlink" title="meta属性"></a>meta属性</h2><p>这个属性是在文档中的一个很重要的属性，具体的子属性请参考：</p>
+<p><a target="_blank" rel="noopener" href="https://my.oschina.net/leaf0s/blog/129966">https://my.oschina.net/leaf0s/blog/129966</a></p>
+<p>重要的讲一下：</p>
+<ul>
+<li><p>collection</p>
+<p>这个主要用于如果我们已经有了一个数据集，希望可以绑定在我们的新的数据集上，可以通过collection:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">class Post(mongo.Document):</span><br><span class="line">    ...</span><br><span class="line">    meta&#x3D;&#123;&#39;collection&#39;:&#39;user_posts&#39;&#125;</span><br><span class="line">class user_posts(mongo.Document):</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>indexes</p>
+<p>   可以在集合上指定<code>索引</code>以加快查询速度。这是通过创建<code>indexes</code>在 <code>meta</code>字典中调用的索引规范列表完成的，其中索引规范可以是单个字段名称，包含多个字段名称的元组或包含完整索引定义的字典。</p>
+<p>   顺序可以通过在字段名前加上 +（用于升序）或-号（用于降序）来指定。请注意，方向只对多字段索引很重要。文本索引可以通过在字段名前添加一个$来指定。散列索引可以通过在字段名前添加＃来指定</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">class Page(mongo.Document):</span><br><span class="line">   ...</span><br><span class="line">   meta&#x3D;&#123;</span><br><span class="line">       indexes:[</span><br><span class="line">           &#39;title&#39;,</span><br><span class="line">            &#39;$title&#39;,  # 文本索引</span><br><span class="line">            &#39;#title&#39;,  # 散列索引</span><br><span class="line">            (&#39;title&#39;, &#39;-rating&#39;),</span><br><span class="line">            (&#39;category&#39;, &#39;_cls&#39;),</span><br><span class="line">            &#123;</span><br><span class="line">                &#39;fields&#39;: [&#39;created&#39;],</span><br><span class="line">                &#39;expireAfterSeconds&#39;: 3600</span><br><span class="line">            &#125;</span><br><span class="line">       ]</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>ordering</p>
+<p>这是用于查询的排序，‘+’号表示升序，’-‘号表示降序比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;ordering&quot;:[&#39;-publish_date&#39;]</span><br></pre></td></tr></table></figure>
+
+<p>这样表示按照publish_date的降序排列</p>
+</li>
+<li><p>allow_inheritance</p>
+<p>这是一个布尔值，表示是否允许被继承</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">class Post(mongo.Ducument):</span><br><span class="line">	...</span><br><span class="line">	meta&#x3D;&#123;&#39;allow_inheritance&#39;:True&#125;</span><br><span class="line">class user(Post)</span><br><span class="line">	...</span><br></pre></td></tr></table></figure>
+
+<p>设置成True就可以被继承了</p>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="MongoDB的优势"><a href="#MongoDB的优势" class="headerlink" title="MongoDB的优势"></a>MongoDB的优势</h3><ol>
+<li>非常容易运行</li>
+<li>非常自由的Schema模型，而且可以很容易地和JSON类的数据结果映射起来，这对于程序员来于有很大的感染力（它完全符合程序员的逻辑思维），而且，程序员总是在项目可以做技术选型的人。</li>
+<li>成熟和分健壮，有记录，被真实的Use Case测试过，等等。对于那些喜欢选择成熟的技术的系统管理员和运营专业来说，这是一个很典型的选择。</li>
+<li>它单系统，低读并发的性能测试非常令人惊讶，而对于那些没有经验的评估者来说，这基本上来说是最重要的。</li>
+</ol>
+<p>Schema模型就是指MongoDB是没有表结构的，而是像上面class定义一些子段来约束数据类型的形式</p>
+<h3 id="MongoDB的劣势"><a href="#MongoDB的劣势" class="headerlink" title="MongoDB的劣势"></a>MongoDB的劣势</h3><p>很多很多，<a target="_blank" rel="noopener" href="http://blog.jobbole.com/5701/">可以参考文章</a>，总结来说就是不稳定，当数据量大的时候耗资源，所以我认为数据库本省没有优劣之分，而是看我们什么样的业务需求</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/Flask%EF%BC%8C%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"># Flask，数据库</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/05/Flask%E4%B8%AD%E7%9A%84MongoEngine(%E4%BA%8C)---%E6%93%8D%E4%BD%9C%E6%95%B0%E6%8D%AE/" rel="prev" title="Flask中的MongoEngine(二)---操作数据">
+      <i class="fa fa-chevron-left"></i> Flask中的MongoEngine(二)---操作数据
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/05/Flask%E4%B8%AD%E7%9A%84Context%E6%9C%BA%E5%88%B6/" rel="next" title="Flask中的Context机制">
+      Flask中的Context机制 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E6%AE%B5%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">字段类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E6%A1%A3%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">文档类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#meta%E5%B1%9E%E6%80%A7"><span class="nav-number">5.</span> <span class="nav-text">meta属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MongoDB%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="nav-number">6.1.</span> <span class="nav-text">MongoDB的优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MongoDB%E7%9A%84%E5%8A%A3%E5%8A%BF"><span class="nav-number">6.2.</span> <span class="nav-text">MongoDB的劣势</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

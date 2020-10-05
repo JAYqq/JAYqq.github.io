@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="《网络是怎样连接的》笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP&#x2F;IP传输 协议栈与网卡（二）">
+<meta property="og:url" content="http://example.com/2020/10/05/Web%E6%B5%8F%E8%A7%88%E5%99%A8%E2%80%94-DNS/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="《网络是怎样连接的》笔记">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2019/08/11/JkNIeqMVKbFlQuz.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/11/t3jgv5Xebd8VJFn.png">
+<meta property="og:image" content="https://i.loli.net/2019/08/11/Vybu31PpxnrKCIW.png">
+<meta property="article:published_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:modified_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="网络">
+<meta property="article:tag" content="TCP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2019/08/11/JkNIeqMVKbFlQuz.png">
+
+<link rel="canonical" href="http://example.com/2020/10/05/Web%E6%B5%8F%E8%A7%88%E5%99%A8%E2%80%94-DNS/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>TCP/IP传输 协议栈与网卡（二） | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/05/Web%E6%B5%8F%E8%A7%88%E5%99%A8%E2%80%94-DNS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TCP/IP传输 协议栈与网卡（二）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-05 21:06:36" itemprop="dateCreated datePublished" datetime="2020-10-05T21:06:36+08:00">2020-10-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">计算机网络</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">《网络是怎样连接的》笔记</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="第一章-Web浏览器—-DNS"><a href="#第一章-Web浏览器—-DNS" class="headerlink" title="第一章 Web浏览器—-DNS"></a>第一章 Web浏览器—-DNS</h2><h3 id="浏览器解析URL"><a href="#浏览器解析URL" class="headerlink" title="浏览器解析URL"></a>浏览器解析URL</h3><p>对于我们在浏览器上输入的网址，比如<a target="_blank" rel="noopener" href="http://www.baidu.com我们的浏览器首先第一步是需要解析它,就是这个url是什么意思,然后浏览器才能去做其他事情,我们举个例子/">www.baidu.com我们的浏览器首先第一步是需要解析它，就是这个URL是什么意思，然后浏览器才能去做其他事情，我们举个例子</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.glass.com/dir1/file.html">http://www.glass.com/dir1/file.html</a></p>
+<p>对于这个网址，浏览器解析成：</p>
+<ul>
+<li>http 协议名，其他的还有https、ftp等</li>
+<li><a target="_blank" rel="noopener" href="http://www.glass.com,代表服务器的域名,**这里也可以用服务器的ip地址来表示*/">www.glass.com，代表服务器的域名，*<em>这里也可以用服务器的IP地址来表示</em></a>*</li>
+<li>/dir1/file.html，代表访问的数据源的路径</li>
+</ul>
+<p>但是我们一般看见的网址不是这样直接访问html文件的而</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="http://www.glass.com/">http://www.glass.com/</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.glass.com/">http://www.glass.com</a></li>
+</ol>
+<p>那么这样两种URL是有什么不同呢，第一种表示访问根目录下的默认文件，一般是index.html。第二种更过分了，目录名都没有给，其实这个一般在web服务器中默认的目录实在~/var/www/html文件夹下的（可自定义）</p>
+<h3 id="HTTP协议"><a href="#HTTP协议" class="headerlink" title="HTTP协议"></a>HTTP协议</h3><p>解析完url以后，我们就需要需要知道访问的目标在哪里，然后生成我们的消息（请求），然后通过网络发送给服务器。</p>
+<p>HTTP协议定义了客户端与服务器之间通信的基本格式，主要包括：</p>
+<ol>
+<li>怎么操作：也就是我们以什么方式去请求，常见的有GET、POST、DELETE、PUT等</li>
+<li>对什么操作：就是指定的web服务器的IP</li>
+<li>操作的内容：也成消息体，就是需要发送给服务器的消息</li>
+</ol>
+<p>发送完请求以后，就会收到服务器返回的响应，得到需要的信息</p>
+<h3 id="向DNS服务器查询Web服务器的IP地址"><a href="#向DNS服务器查询Web服务器的IP地址" class="headerlink" title="向DNS服务器查询Web服务器的IP地址"></a>向DNS服务器查询Web服务器的IP地址</h3><p>因为我们的url中一般都是域名，但是域名只是一个服务器的昵称，我们需要它的地址才能进行访问。那么IP地址具体是指什么呢？</p>
+<p><strong>局域网</strong></p>
+<p>公司里的局域网都是基于TCP/IP的思路设计的，它的结构一般都是几台用一个集线器连接起来的计算机组成一个 <strong>子网</strong>，然后这些子网通过路由器连接起来组成一个巨大的网络，就形成了局域网</p>
+<p><strong>IP地址</strong></p>
+<p>在网络中，每个设备都会有一个地址，就像是你家里的地址 xx省xx市xx镇xx小区xx号，IP地址也是一样的意思，IP地址包括网络号和主机号两部分</p>
+<p>IP地址是由32位组成的，8位一组，分成4组形成，常见的格式有：</p>
+<ul>
+<li>10.11.12.13</li>
+<li>10.11.12.13/255.255.255.0</li>
+<li>10.11.12.0/24</li>
+<li>10.11.12.255/24</li>
+</ul>
+<p>后面的附加部分是子网掩码，也是一组32位的数字左边一半都为1表示网络号，右边一半都为0表示主机号。IP地址的网络号，也就是10.11.12；主机号就是后面的13，如果这个主机号为</p>
+<ul>
+<li>8个位上都是0，就表示整个子网</li>
+<li>8个位上都是1，也就是255，表示向整个子网上的设备发送数据包，也就是广播</li>
+</ul>
+<h3 id="DNS服务器"><a href="#DNS服务器" class="headerlink" title="DNS服务器"></a>DNS服务器</h3><p>查询IP地址的过程其实很简单，无非就是，客户端问：“IP地址是啥”，服务器回答：“是xxx”。所以在我们的电脑上一定是有DNS服务器对应的DNS客户端，那么这个客户端就叫做 <strong>DNS解析器</strong>简称 <strong>解析器</strong>。解析器包含在操作系统 <strong>SOCKET库</strong>中的一段程序，那么这个SOCKET库是什么东西呢</p>
+<p><strong>SOCKET库</strong>就是一个基于C语言开发的一个具有网络功能的库</p>
+<p><strong>通过解析器向DNS发送查询</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;应用程序&gt;（&lt;参数&gt;）</span><br><span class="line">&#123;</span><br><span class="line">   &lt;内存地址&gt;&#x3D;gethostbyname(&quot;www.glass.com&quot;)</span><br><span class="line">   ....</span><br><span class="line">   &lt;发送HTTP消息&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端调用了gethostbyname方法以后，就会启动操作系统的解析器，在SOCKET库中，解析器的基本逻辑是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">gethostbyname&#123;</span><br><span class="line">  生成的发送给DNS的查询消息</span><br><span class="line">  向DNS发送消息</span><br><span class="line">  接受返回的消息</span><br><span class="line">  从响应信息中取出IP地址，存到&lt;内存地址&gt;中</span><br><span class="line">  返回给应用程序</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而，解析器本身是不具备信息的收发功能的，而是调用了操作系统内部的 <strong>协议栈</strong>，协议栈帮助通过网卡发送消息。这里需要注意的是返回的IP地址解析器是会放到内存中去的，应用程序只需要存内存中读取就可以了</p>
+<p>我们计算机的DNS服务器的IP地址是我们自定义的，如果不知道DNS服务器IP，那么这一切都是徒劳</p>
+<p>DNS服务器收到查询消息以后，根据消息中的查询内容进行查询，如果要访问的服务器已经在DNS上注册的话，解析记录就能够被找到，然后IP地址就会被写入响应信息中返回给客户端。客户端收到消息以后，经过协议栈传递给解析器，解析器将IP地址放到内存中，应用程序就可以在内存中读取IP地址了</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/11/JkNIeqMVKbFlQuz.png"><img src="https://i.loli.net/2019/08/11/JkNIeqMVKbFlQuz.png" alt="06.png"></a></p>
+<h3 id="全世界DNS服务器大接力"><a href="#全世界DNS服务器大接力" class="headerlink" title="全世界DNS服务器大接力"></a>全世界DNS服务器大接力</h3><p>前面介绍了如何向DNS服务器发送查询信息，然后来讲一讲DNS服务器的工作原理</p>
+<p><strong>客户端的查询消息</strong></p>
+<p>一共包含三方面：</p>
+<ol>
+<li><p>域名</p>
+<p>域名就是服务器、邮件服务器的名称</p>
+</li>
+<li><p>Class</p>
+<p>用来识别网络中的信息，但是现在除了互联网没有其他网络，所以Class只代表互联网的IN</p>
+</li>
+<li><p>记录类型</p>
+<p>A 是 Address 的缩写。</p>
+<p>MX是Mail exchange的缩写，邮件交换。</p>
+</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/11/t3jgv5Xebd8VJFn.png"><img src="https://i.loli.net/2019/08/11/t3jgv5Xebd8VJFn.png" alt="07.png"></a></p>
+<p>所以，简单来说DNS服务器内部有很多条解析记录，然后它会根据查询消息中的三个信息点进行对应查询。</p>
+<h3 id="域名的层次结构"><a href="#域名的层次结构" class="headerlink" title="域名的层次结构"></a>域名的层次结构</h3><p>互联网中有那么多的服务器，所以不可能所有的解析记录都放在一台DNS服务器上进行查询。所以DNS服务器中的所有信息都是按照域名以分层次的结构来保存的。</p>
+<p>比如<a target="_blank" rel="noopener" href="http://www.lab.glasscom.com,它的层次是以'.'划分,越往右层级越高,所以查询过程也是从左往右也就是从"www"到"com"/">www.lab.glasscom.com，它的层次是以’.’划分，越往右层级越高，所以查询过程也是从左往右也就是从”www”到”com”</a></p>
+<p><strong>一台服务器可能有多域的信息，但是一个域只能放在一个DNS中</strong>，所以如果现在有一个公司的域是example.co.jp，那么如果这个公司有两个集团，他们所使用的WEB服务器都是一个公司内部的，所以所以可以为这两个集团分配下级域名sub1.example.co.ip和sub2.example.co.ip。</p>
+<p><strong>寻找对应的DNS服务器并查询IP</strong></p>
+<p>基本思想是下级域的IP地址注册到上一级域的DNS上。比如管理lab.example.com的DNS的IP地址注册到example.com的DNS服务器上，以此类推</p>
+<p>你可能认为上面的com、cn这样的都是顶层域了，但是其实还有一个根域，是一个‘.’，完整的域是这样的<a target="_blank" rel="noopener" href="http://www.example.com/">www.example.com</a>. 所以，根域的DNS服务器信息要注册到所有的DNS中，这样客户端找到任意一个DNS，就可以访问到根域的IP，然后一路向下顺藤摸瓜找到对应的DNS</p>
+<p>那么当客户端发送完消息以后DNS之间是如何查询的呢？看图：</p>
+<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/08/11/Vybu31PpxnrKCIW.png"><img src="https://i.loli.net/2019/08/11/Vybu31PpxnrKCIW.png" alt="08.png"></a></p>
+<p><strong>通过缓存加快查询</strong></p>
+<p>现实中，查询域的时候没必要都从根域开始查找，所以DNS有一个缓存机制，会缓存最近查询过的域名，下次查询的时候就可以直接跳过一些域查询了</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag"># 网络</a>
+              <a href="/tags/TCP/" rel="tag"># TCP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/05/nohup%E5%9C%A8%E5%90%8E%E5%8F%B0%E8%B7%91%E8%84%9A%E6%9C%AC/" rel="prev" title="nohup在后台跑脚本">
+      <i class="fa fa-chevron-left"></i> nohup在后台跑脚本
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/05/Web%E6%B5%8F%E8%A7%88%E5%99%A8----%E5%8D%8F%E8%AE%AE%E6%A0%88/" rel="next" title="Web浏览器----协议栈">
+      Web浏览器----协议栈 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0-Web%E6%B5%8F%E8%A7%88%E5%99%A8%E2%80%94-DNS"><span class="nav-number">1.</span> <span class="nav-text">第一章 Web浏览器—-DNS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E8%A7%A3%E6%9E%90URL"><span class="nav-number">1.1.</span> <span class="nav-text">浏览器解析URL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP%E5%8D%8F%E8%AE%AE"><span class="nav-number">1.2.</span> <span class="nav-text">HTTP协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%91DNS%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%9F%A5%E8%AF%A2Web%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84IP%E5%9C%B0%E5%9D%80"><span class="nav-number">1.3.</span> <span class="nav-text">向DNS服务器查询Web服务器的IP地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">1.4.</span> <span class="nav-text">DNS服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E4%B8%96%E7%95%8CDNS%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%A4%A7%E6%8E%A5%E5%8A%9B"><span class="nav-number">1.5.</span> <span class="nav-text">全世界DNS服务器大接力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%9F%E5%90%8D%E7%9A%84%E5%B1%82%E6%AC%A1%E7%BB%93%E6%9E%84"><span class="nav-number">1.6.</span> <span class="nav-text">域名的层次结构</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">categories</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
