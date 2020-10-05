@@ -1,0 +1,1440 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Hello World</title>
+    <url>/2020/10/05/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>C++并发编程-生产者消费者模型</title>
+    <url>/2020/10/05/C++%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B-%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E6%A8%A1%E5%9E%8B/</url>
+    <content><![CDATA[<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>这里的生产者消费者将“产品”放入数组中。</p>
+<h2 id="基本实现"><a href="#基本实现" class="headerlink" title="基本实现"></a>基本实现</h2><h3 id="非类实现"><a href="#非类实现" class="headerlink" title="非类实现"></a>非类实现</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;mutex&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;condition_variable&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="comment">//基于互斥锁和事件通知的生产者消费者模型</span></span><br><span class="line"><span class="built_in">std</span>::mutex m;</span><br><span class="line"><span class="built_in">std</span>::condition_variable cv;</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; ve;</span><br><span class="line"><span class="keyword">bool</span> processable=<span class="literal">true</span>;</span><br><span class="line"><span class="keyword">bool</span> consumabel=<span class="literal">false</span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">process</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* code */</span></span><br><span class="line">        <span class="function"><span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">mx</span><span class="params">(m)</span></span>;</span><br><span class="line">        cv.wait(mx,[]&#123;<span class="keyword">return</span> processable;&#125;);</span><br><span class="line">        ve.push_back(<span class="number">2</span>);</span><br><span class="line">        consumabel=<span class="literal">true</span>;</span><br><span class="line">        processable=<span class="literal">false</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;processing\n&quot;</span>);</span><br><span class="line">        mx.unlock();</span><br><span class="line">        cv.notify_one();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">consume</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* code */</span></span><br><span class="line">        <span class="function"><span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">mx</span><span class="params">(m)</span></span>;</span><br><span class="line">        cv.wait(mx,[]&#123;<span class="keyword">return</span> consumabel;&#125;);</span><br><span class="line">        processable=<span class="literal">true</span>;</span><br><span class="line">        consumabel=<span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">int</span> num=ve.back();</span><br><span class="line">        ve.pop_back();</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;consumeing\n,%d&quot;</span>,num);</span><br><span class="line">        mx.unlock();</span><br><span class="line">        cv.notify_one();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function"><span class="built_in">std</span>::thread <span class="title">thread1</span><span class="params">(process)</span></span>;</span><br><span class="line">    <span class="function"><span class="built_in">std</span>::thread <span class="title">thread2</span><span class="params">(consume)</span></span>;</span><br><span class="line">    thread1.join();</span><br><span class="line">    thread2.join();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="类实现"><a href="#类实现" class="headerlink" title="类实现"></a>类实现</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;condition_variable&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;mutex&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;list&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProAndCon</span> &#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">list</span>&lt;T&gt; m_queue;</span><br><span class="line">    mutex m_mutex;<span class="comment">//全局互斥锁</span></span><br><span class="line">    condition_variable_any m_notEmpty;<span class="comment">//全局条件变量（不为空）</span></span><br><span class="line">    condition_variable_any m_notFull;<span class="comment">//全局条件变量（不为满）</span></span><br><span class="line">    <span class="keyword">int</span> m_maxSize;<span class="comment">//队列最大容量</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="comment">//队列为空</span></span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">isEmpty</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> m_queue.empty();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//队列已满</span></span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">isFull</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> m_queue.size() == m_maxSize;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    ProAndCon(<span class="keyword">int</span> maxSize) &#123;</span><br><span class="line">        <span class="keyword">this</span>-&gt;m_maxSize = maxSize;</span><br><span class="line">    &#125;</span><br><span class="line">    ProAndCon();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">virtual</span> ~ProAndCon();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">product</span><span class="params">(<span class="keyword">const</span> T&amp; v)</span> </span>&#123;</span><br><span class="line">        <span class="function">unique_lock&lt;mutex&gt; <span class="title">locker</span><span class="params">(m_mutex)</span></span>;</span><br><span class="line">        <span class="keyword">while</span>(isFull()) &#123;</span><br><span class="line">            <span class="built_in">cout</span>&lt;&lt;<span class="string">&quot;队列已满，请等待&quot;</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        <span class="comment">//生产者等待&quot;产品队列缓冲区不为满&quot;这一条件发生.</span></span><br><span class="line">            m_notFull.wait(m_mutex);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//往队列里面生产一个元素,同时通知不为空这个信号量</span></span><br><span class="line">        m_queue.push_back(v);</span><br><span class="line">        m_notEmpty.notify_one();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">consumption</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">unique_lock&lt;mutex&gt; <span class="title">locker</span><span class="params">(m_mutex)</span></span>;</span><br><span class="line">        <span class="keyword">while</span>(isEmpty()) &#123;</span><br><span class="line">            <span class="built_in">cout</span>&lt;&lt;<span class="string">&quot;队列已空，请等待&quot;</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">        <span class="comment">// 消费者等待&quot;产品队列缓冲区不为空&quot;这一条件发生.</span></span><br><span class="line">            m_notEmpty.wait(m_mutex);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//在队列里面消费一个元素,同时通知队列不满这个信号量</span></span><br><span class="line">        T v = m_queue.front();</span><br><span class="line">        m_queue.pop_front();</span><br><span class="line">        m_notFull.notify_one();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+        <tag>多线程</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++并发编程-线程安全的Stack和Queue</title>
+    <url>/2020/10/05/C++%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B-%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%9A%84Stack%E5%92%8CQueue/</url>
+    <content><![CDATA[<h2 id="Stack的线程安全"><a href="#Stack的线程安全" class="headerlink" title="Stack的线程安全"></a>Stack的线程安全</h2><h3 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h3><p>由于STL在设计的时候是不考虑线程安全问题的，所以这部分需要我们自己来做，而Stack出现线程安全问题的问题主要是在pop、top、push、empty方法之间产生，比如：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="built_in">std</span>::<span class="built_in">stack</span>&lt;<span class="keyword">int</span>&gt; s；</span><br><span class="line"><span class="keyword">if</span> (!s.empty())</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> n = s.top();</span><br><span class="line">    s.pop();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>比如这个当多线程运行时，两个线程均进入if，但是一个线程提前pop，那么另一个线程就无法获取top，异常退出，这里就出现了竞争。</p>
+<h3 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h3><p>stack这边主要利用锁来保证线程安全</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;memory&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;mutex&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stack&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;atomic&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">emptyStack</span>:</span><span class="built_in">std</span>::exception</span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">const</span> <span class="keyword">char</span>* <span class="title">what</span><span class="params">()</span> <span class="keyword">const</span> <span class="keyword">noexcept</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Empty Stack!&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ThreadSaveStack</span>&#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">stack</span>&lt;T&gt; m_stack;</span><br><span class="line">    <span class="keyword">mutable</span> <span class="built_in">std</span>::mutex mx;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    ThreadSaveStack():m_stack(<span class="built_in">std</span>::<span class="built_in">stack</span>&lt;T&gt;())&#123;&#125;</span><br><span class="line">    ThreadSaveStack(<span class="keyword">const</span> ThreadSaveStack&amp; stk) <span class="comment">//拷贝构造函数</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function"><span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lm</span><span class="params">(mx)</span></span>;</span><br><span class="line">        m_stack=stk.m_stack;</span><br><span class="line">    &#125;</span><br><span class="line">    ThreadSaveStack&amp; <span class="keyword">operator</span>=(<span class="keyword">const</span> ThreadSaveStack&amp;)=<span class="keyword">delete</span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">push</span><span class="params">(T n)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="function"><span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lm</span><span class="params">(mx)</span></span>;</span><br><span class="line">        m_stack.push(<span class="built_in">std</span>::move(n));  <span class="comment">//注意这里的n是一个左值，而push方法接收的是一个右值</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;T&gt; <span class="title">pop</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="function"><span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lm</span><span class="params">(mx)</span></span>;</span><br><span class="line">        <span class="keyword">if</span>(m_stack.empty()) <span class="keyword">throw</span> emptyStack();</span><br><span class="line">        <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;T&gt; res=<span class="built_in">std</span>::make_shared&lt;T&gt;(<span class="built_in">std</span>::move(m_stack.top()));</span><br><span class="line">        m_stack.pop();</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">pop</span><span class="params">(T&amp; n)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="function"><span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lm</span><span class="params">(mx)</span></span>;</span><br><span class="line">        <span class="keyword">if</span>(m_stack.empty()) <span class="keyword">throw</span> emptyStack();</span><br><span class="line">        n=<span class="built_in">std</span>::move(m_stack.top());</span><br><span class="line">        m_stack.pop();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">empty</span><span class="params">()</span> <span class="keyword">const</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="function"><span class="built_in">std</span>::lock_guard&lt;<span class="built_in">std</span>::mutex&gt; <span class="title">lm</span><span class="params">(mx)</span></span>;</span><br><span class="line">        <span class="keyword">return</span> m_stack.empty();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line">ThreadSaveStack&lt;<span class="keyword">int</span>&gt; thread_save_stack;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">push_stack</span><span class="params">(<span class="keyword">int</span> startNum,<span class="keyword">int</span> sum)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;sum;i++)&#123;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">cout</span>&lt;&lt;<span class="string">&quot;Push num: &quot;</span>&lt;&lt;startNum&lt;&lt;<span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">        thread_save_stack.push(startNum++);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">pop_stack</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(!thread_save_stack.empty())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">try</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">std</span>::<span class="built_in">shared_ptr</span>&lt;<span class="keyword">int</span>&gt; ptr=thread_save_stack.pop();</span><br><span class="line">            <span class="built_in">std</span>::<span class="built_in">cout</span>&lt;&lt;<span class="string">&quot;Pop num: &quot;</span>&lt;&lt;*ptr&lt;&lt;<span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span>(emptyStack e)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">std</span>::<span class="built_in">cerr</span> &lt;&lt; e.what() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span>&lt;&lt;<span class="string">&quot;Pop End&quot;</span>&lt;&lt;<span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::thread&gt; my_threads;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">5</span>;i++)&#123;</span><br><span class="line">        my_threads.push_back(<span class="built_in">std</span>::thread(push_stack,i*<span class="number">5</span>,<span class="number">5</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">std</span>::for_each(my_threads.begin(),my_threads.end(),<span class="built_in">std</span>::mem_fn(&amp;<span class="built_in">std</span>::thread::detach));</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::thread&gt; my_pop_threads;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">5</span>;i++)&#123;</span><br><span class="line">        my_pop_threads.push_back(<span class="built_in">std</span>::thread(pop_stack));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">std</span>::for_each(my_pop_threads.begin(),my_pop_threads.end(),<span class="built_in">std</span>::mem_fn(&amp;<span class="built_in">std</span>::thread::join));</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Queue的线程安全"><a href="#Queue的线程安全" class="headerlink" title="Queue的线程安全"></a>Queue的线程安全</h2>]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+        <tag>多线程</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++类(三)--抽象数据类型</title>
+    <url>/2020/10/05/C++%E7%B1%BB(%E4%B8%89)--%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%92%8C%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/</url>
+    <content><![CDATA[<h2 id="抽象数据类型"><a href="#抽象数据类型" class="headerlink" title="抽象数据类型"></a>抽象数据类型</h2><h3 id="类中的this指针"><a href="#类中的this指针" class="headerlink" title="类中的this指针"></a>类中的this指针</h3><p>this指针本身是一个常量指针，也就是this本身地址不允许被改变。</p>
+<p>类的实例调用类成员函数或者成员变量的时候是有隐含this指针的，比如:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Stu</span>&#123;</span></span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">get_num</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> num;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//Stu st;</span></span><br><span class="line"><span class="comment">//st.get_num()</span></span><br></pre></td></tr></table></figure>
+
+<p>还可以将那些不会对成员变量修改的成员函数的this指针设为const常量，比如：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Stu</span>&#123;</span></span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">get_num</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> num;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样由于this指针成为了指向常量的指针，所以不可以修改成员变量了。</p>
+<h3 id="类相关的非成员函数"><a href="#类相关的非成员函数" class="headerlink" title="类相关的非成员函数"></a>类相关的非成员函数</h3><p>类的设计中成员函数一定是一些主要的功能函数，而对于一些没必要的，但是概念上属于类的函数定义为成员函数，比如对于成员变量的输出输入，<strong>这样的在概念上相关但是功能上无关的函数，定义为非成员函数。并且最好和头文件定义在一起，只不过不在类中。</strong></p>
+<h2 id="访问控制与封装"><a href="#访问控制与封装" class="headerlink" title="访问控制与封装"></a>访问控制与封装</h2><h3 id="public"><a href="#public" class="headerlink" title="public"></a>public</h3><p>之后的成员变量可以被程序中所有代码访问</p>
+<h3 id="private"><a href="#private" class="headerlink" title="private"></a>private</h3><p>可以被该类的成员函数、友元函数访问，但是不能被类的实例或者其他访问</p>
+<h3 id="protect"><a href="#protect" class="headerlink" title="protect"></a>protect</h3><p>在private的权限上还可以被子类的成员函数访问</p>
+<h3 id="class和struct"><a href="#class和struct" class="headerlink" title="class和struct"></a>class和struct</h3><p>唯一的区别只是内部的默认权限，struct默认是public，class默认是private</p>
+<h3 id="友元函数"><a href="#友元函数" class="headerlink" title="友元函数"></a>友元函数</h3><p>对于那些类相关的非成员函数，也需要访问类的成员，但是没有权限，所以可以申明friend函数在类中打破这种权限。</p>
+]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>c++类(一)--函数重载和运算符重载</title>
+    <url>/2020/10/05/C++%E7%B1%BB(%E4%B8%80)--%E5%87%BD%E6%95%B0%E9%87%8D%E8%BD%BD%E5%92%8C%E8%BF%90%E7%AE%97%E7%AC%A6%E9%87%8D%E8%BD%BD/</url>
+    <content><![CDATA[<h2 id="函数重载"><a href="#函数重载" class="headerlink" title="函数重载"></a>函数重载</h2><p>函数重载在一定程序上可以减轻程序员起名字的负担</p>
+<h3 id="main函数不能重载"><a href="#main函数不能重载" class="headerlink" title="main函数不能重载"></a>main函数不能重载</h3><p>这肯定，不然入口函数没得选</p>
+<h3 id="不能只有返回值不同"><a href="#不能只有返回值不同" class="headerlink" title="不能只有返回值不同"></a>不能只有返回值不同</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">double</span> <span class="title">calcArea</span><span class="params">(<span class="keyword">const</span> Square&amp;)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">calcArea</span><span class="params">(<span class="keyword">const</span> Square&amp;)</span></span>;  <span class="comment">//非法，仅有返回值不同，不可重载</span></span><br><span class="line"><span class="comment">/*以上声明同时出现会报错*/</span></span><br></pre></td></tr></table></figure>
+
+<p>它怎么知道走哪个</p>
+<p><strong>所以，至少在形参上类型或者数量不同</strong></p>
+<h3 id="最佳匹配原则"><a href="#最佳匹配原则" class="headerlink" title="最佳匹配原则"></a>最佳匹配原则</h3><p>一般来说，精确匹配肯定比需要类型转换的匹配要更好，但是当形参有多个，并且无法完全精确匹配的时候，要确定最佳匹配函数就有点困难了。<br>但是有下面的原则：</p>
+<ul>
+<li>函数的每个实参的匹配都不能比其他可行函数更差</li>
+<li>函数至少有一个实参的匹配要比其他可行函数更好</li>
+</ul>
+<p>那么问题又来了，什么是更好，什么又是更差呢？编译器将实参类型到形参类型的转换划分了等级：</p>
+<ul>
+<li>1.精确匹配，包括实参类型和形参类型相同，实参从数组或函数转换成对应的指针类型，向实参添加顶层const或从实参删除顶层const</li>
+<li>2.通过const转换实现的匹配</li>
+<li>3.通过类型提升实现的匹配</li>
+<li>4.通过算数类型转换实现的匹配</li>
+<li>5.通过类类型转换实现的匹配</li>
+</ul>
+<p>等级越靠前，匹配也就越好。接下来对上面的内容做一些解释。</p>
+<h4 id="精确匹配"><a href="#精确匹配" class="headerlink" title="精确匹配"></a><strong>精确匹配</strong></h4><p>精确匹配比较容易理解。关于顶层const问题，可以参考《<a href="http://mp.weixin.qq.com/s?__biz=MzI2OTA3NTk3Ng==&mid=2649284131&idx=1&sn=2d046d02b62263f99132a952a5098487&chksm=f2f9ad44c58e2452a06414cc0dc170cee1f2d074b45a77a37a299c9824a80769444cb4252751&scene=21#wechat_redirect">什么是函数重载？</a>》</p>
+<h4 id="通过const转换实现的匹配"><a href="#通过const转换实现的匹配" class="headerlink" title="通过const转换实现的匹配"></a>通过const转换实现的匹配</h4><p>所谓通过const转换实现的匹配，指的是通过加const限定词，能够与可行函数精确匹配。例如：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="comment">//函数1</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">int f(string &amp;a)</span></span><br><span class="line"><span class="comment">&#123;</span></span><br><span class="line"><span class="comment">    cout&lt;&lt;&quot;call function 1&quot;&lt;&lt;endl;</span></span><br><span class="line"><span class="comment">    return 0;</span></span><br><span class="line"><span class="comment">&#125;*/</span></span><br><span class="line"><span class="comment">//函数2</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">f</span><span class="params">(<span class="keyword">const</span> <span class="built_in">string</span> &amp;a)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">&quot;call function 2&quot;</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">string</span> test = <span class="string">&quot;test&quot;</span>;</span><br><span class="line">    f(test);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，test可以通过const转换，从而匹配函数2，将能够找到最佳匹配函数2（当前情况它也只有一个可选了）。<br>运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">call function 2                                   </span><br></pre></td></tr></table></figure>
+
+<p>如果把函数1的注释去掉再运行，就会发现，虽然第一个调用既能匹配函数1，也能匹配函数2，但是由于匹配函数2的时候，需要const转换，因此比精确匹配要差，最终，它会调用函数1。<br>去掉函数1的注释后，运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">call function 1                                      </span><br></pre></td></tr></table></figure>
+
+<h4 id="通过类型提升实现的匹配"><a href="#通过类型提升实现的匹配" class="headerlink" title="通过类型提升实现的匹配"></a>通过类型提升实现的匹配</h4><p>关于类型提升，这里不多做介绍。简单说明类型提升规则：</p>
+<ul>
+<li>float将提升到double</li>
+<li>char、short和相应的signed、unsigned类型将提升到int</li>
+</ul>
+<p>我们来看一个示例：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="comment">//函数1</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">int f(short a)</span></span><br><span class="line"><span class="comment">&#123;</span></span><br><span class="line"><span class="comment">    cout&lt;&lt;&quot;call function 1&quot;&lt;&lt;endl;</span></span><br><span class="line"><span class="comment">    return 0;</span></span><br><span class="line"><span class="comment">&#125;*/</span></span><br><span class="line"><span class="comment">//函数2</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">f</span><span class="params">(  <span class="keyword">int</span> a)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">&quot;call function 2&quot;</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">short</span> a = <span class="number">2</span>;</span><br><span class="line">    f(a);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样地，我们暂时把函数1注释掉。由于a是short类型，但是通过类型提升，可以转换为int，因为它也能调用函数2。运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">call function 2</span><br></pre></td></tr></table></figure>
+
+<p>但去掉函数1注释后，由于精确匹配优于通过类型提升的匹配，因此将会调用函数1，运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">call function 1</span><br></pre></td></tr></table></figure>
+
+<h4 id="通过算术类型转换实现的匹配"><a href="#通过算术类型转换实现的匹配" class="headerlink" title="通过算术类型转换实现的匹配"></a>通过算术类型转换实现的匹配</h4><p>short int和float，double等之间的转换，都是算术类型之间的转换。我们仍然来看一个例子：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="comment">//函数1</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">f</span><span class="params">(<span class="keyword">int</span> a)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">&quot;call function 1&quot;</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//函数2</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">f</span><span class="params">(<span class="keyword">double</span> a)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="string">&quot;call function 2&quot;</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">short</span> a = <span class="number">2</span>;</span><br><span class="line">    f(a);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，short类型的a既可以通过类型提升转换为int，也可以通过算术类型转换成为double。这个时候，哪个才是最佳匹配呢？我们看运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">call function 1</span><br></pre></td></tr></table></figure>
+
+<p>对于这个结果，并不意外，因为前面我们已经说到，通过类型提升的转换是优于算术转换的，因而函数1是它的最佳匹配函数。</p>
+<h4 id="通过类类型转换实现的匹配"><a href="#通过类类型转换实现的匹配" class="headerlink" title="通过类类型转换实现的匹配"></a>通过类类型转换实现的匹配</h4><p>这里不多做介绍。我们也很容易理解。诸如父类和子类之间的转换都是如此。</p>
+<h2 id="运算符重载"><a href="#运算符重载" class="headerlink" title="运算符重载"></a>运算符重载</h2><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">Water&amp; <span class="keyword">operator</span>+(Water &amp;b1,Water &amp;b2)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/*do something</span></span><br><span class="line"><span class="comment">    假设是将水的重量相加</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//就可以直接</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Water b1;</span></span><br><span class="line"><span class="comment">Water b2;</span></span><br><span class="line"><span class="comment">b1 + b2;</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="区分前后置"><a href="#区分前后置" class="headerlink" title="区分前后置++"></a>区分前后置++</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//后置版本</span></span><br><span class="line">Water Water::<span class="keyword">operator</span>++(<span class="keyword">int</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/*do something*/</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//前置版本</span></span><br><span class="line">Water&amp; Water::<span class="keyword">operator</span>++()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/*do something*/</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>用一个多余的int区分</p>
+<h3 id="不能与内置定义矛盾"><a href="#不能与内置定义矛盾" class="headerlink" title="不能与内置定义矛盾"></a>不能与内置定义矛盾</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">int</span> <span class="keyword">operator</span>+(<span class="keyword">int</span> a,<span class="keyword">int</span> b)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> a *<span class="number">2</span> + b;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">int</span> b = <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">int</span> c = a + b;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码运行错误，因为+号对于两个整型的运算就是单纯的相加，不能做其他的。</p>
+<p><strong>所以重载运算符至少含有一个类类型或者枚举类型</strong></p>
+<h3 id="不建议重载的符号"><a href="#不建议重载的符号" class="headerlink" title="不建议重载的符号"></a>不建议重载的符号</h3><p>由于<strong>重载的运算符本质是函数</strong>，因此对于<strong>那些对作用对象求值顺序有要求的运算符应该尽量避免重载</strong>，例如逻辑运算符，逗号运算符等。</p>
+<p>举例来说，||和&amp;&amp;具有短路属性：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">a || b || c</span><br></pre></td></tr></table></figure>
+
+<p>我们都知道，当表达式a为true时，b和c将不会被求值，<br>但是如果重载了||，并将它作用于重载对象，那它将不会有此性质，而是三个表达式都会求值。因此如果想要重载后的运算符也有短路性质，你是很难期望了。</p>
+<p>注意，这里<strong>不建议并非不能重载</strong>。</p>
+]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++类(二)--构造函数和拷贝构造函数</title>
+    <url>/2020/10/05/C++%E7%B1%BB(%E4%BA%8C)--%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E5%92%8C%E6%8B%B7%E8%B4%9D%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h2 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h2><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Foo</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> value = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    Foo(<span class="keyword">int</span> val):value(val)&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    Foo foo;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Test test;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;<span class="keyword">sizeof</span>(test);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果没有显示声明构造函数，那么编译器会自动生成一个无参构造函数，<strong>也叫合成的默认构造函数</strong>。</p>
+<p>而如果有声明其他带参的构造函数，就不会生成这个默认构造函数。可以加一个：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">Foo()=<span class="keyword">default</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这样就可以生成默认构造函数。</p>
+<p>另外，如果类中包含一个其他类类型的成员变量，那么就不会生成默认构造函数。</p>
+<h3 id="赋值方式"><a href="#赋值方式" class="headerlink" title="赋值方式"></a>赋值方式</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">Test(<span class="keyword">const</span> <span class="built_in">string</span> &amp;n,<span class="keyword">int</span> a):name(n),age(a),month(a*<span class="number">12</span>)&#123;&#125;    <span class="comment">//可以这样</span></span><br><span class="line">Test(<span class="keyword">const</span> <span class="built_in">string</span> &amp;n,<span class="keyword">int</span> a)<span class="comment">//也可以这样</span></span><br><span class="line">&#123;</span><br><span class="line">    name = n;</span><br><span class="line">    age = a;</span><br><span class="line">    month = a *<span class="number">12</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果类的成员函数是const或者引用类型，就不可以采用第二种构造函数，只能采用第一种。</p>
+]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Flask中的Context机制</title>
+    <url>/2020/10/05/Flask%E4%B8%AD%E7%9A%84Context%E6%9C%BA%E5%88%B6/</url>
+    <content><![CDATA[<h2 id="Flask中的Context机制"><a href="#Flask中的Context机制" class="headerlink" title="Flask中的Context机制"></a>Flask中的Context机制</h2><p>本文参考了一篇写的很详细的文章，附上链接</p>
+<p><a href="https://blog.tonyseek.com/post/the-context-mechanism-of-flask/?utm_source=wechat_session&amp;utm_medium=social&amp;utm_oi=1081944179122413568">https://blog.tonyseek.com/post/the-context-mechanism-of-flask/?utm_source=wechat_session&amp;utm_medium=social&amp;utm_oi=1081944179122413568</a></p>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>今天遇到了一个问题，因为自己的周末小项目基于SQLAlchemy的，但是app下的创建app</p>
+<p>对象用当换成工厂模式create_app之后，直接在python shell下导入models下的User就会报错，稍加修改以后虽然能import进User这个表，但是不能对他进行增删改查。后来看见了这篇文章，发现原来是在离线脚本下我们需要先引入应用上下文(App Context)，因为此时的_app_ctx_stack栈为空</p>
+<h3 id="Thread-Local-概念"><a href="#Thread-Local-概念" class="headerlink" title="Thread  Local 概念"></a>Thread  Local 概念</h3><p>它是一种特殊的状态，对线程互相隔离，每个线程都有一个thread  local对象。它的原理就是以线程的 ID 来保存多份状态字典</p>
+<h3 id="Werkzeug实现的Local-Stack和Local-Proxy"><a href="#Werkzeug实现的Local-Stack和Local-Proxy" class="headerlink" title="Werkzeug实现的Local Stack和Local Proxy"></a>Werkzeug实现的Local Stack和Local Proxy</h3><p>Werkzeug 没有直接使用 <code>threading.local</code>，而是自己实现了 <code>werkzeug.local.Local</code> 类。后者和前者有一些区别：</p>
+<ul>
+<li>后者会在 Greenlet 可用的情况下优先使用 Greenlet 的 ID 而不是线程 ID 以支持 Gevent 或 Eventlet 的调度，前者只支持多线程调度；</li>
+<li>后者实现了 Werkzeug 定义的协议方法 <code>__release_local__</code>，可以被 Werkzeug 自己的 release_pool 函数释放（析构）掉当前线程下的状态，前者没有这个能力。</li>
+</ul>
+<p>除 Local 外，Werkzeug 还实现了两种数据结构：LocalStack 和 LocalProxy。</p>
+<p>LocalStack 是用 Local 实现的栈结构，可以将对象推入、弹出，也可以快速拿到栈顶对象。当然，所有的修改都只在本线程可见。和 Local 一样，LocalStack 也同样实现了支持 release_pool 的接口。</p>
+<p>LocalProxy 则是一个典型的代理模式实现，它在构造时接受一个 callable 的参数（比如一个函数），这个参数被调用后的返回值本身应该是一个 Thread Local 对象。对一个 LocalProxy 对象的所有操作，包括属性访问、方法调用（当然方法调用就是属性访问）甚至是二元操作 [<a href="https://blog.tonyseek.com/post/the-context-mechanism-of-flask/?utm_source=wechat_session&utm_medium=social&utm_oi=1081944179122413568#id16">6]</a> 都会转发到那个 callable 参数返回的 Thread Local 对象上。</p>
+<p>LocalProxy 的一个使用场景是 LocalStack 的 <code>__call__</code> 方法。比如 <code>my_local_stack</code> 是一个 LocalStack 实例，<strong>那么 <code>my_local_stack()</code> 能返回一个 LocalProxy 对象，这个对象始终指向 <code>my_local_stack</code> 的栈顶元素。如果栈顶元素不存在，访问这个 LocalProxy 的时候会抛出 <code>RuntimeError</code>。</strong></p>
+<h3 id="Flask基于Local-Stack的Context"><a href="#Flask基于Local-Stack的Context" class="headerlink" title="Flask基于Local Stack的Context"></a>Flask基于Local Stack的Context</h3><p>原文中已经讲解的很详细了，我理解的就是</p>
+<ol>
+<li><p>App Context是应用级上下文，也就是我们实战中的app对象集成的一个栈，包含了app对象所有的配置，我们之前的create_app方法就是构造一个app对象。然后服务器开始接收请求，每个请求都会进入_request_ctx_stack中，而请求上下文一定是在应用上下文中的，所以这里会隐式地将一个app对象放入栈中</p>
+</li>
+<li><p>我们的创建了一个Flask app本质就是创建了一个app_context对象，不会自动的压栈，而是通过请求的隐式作用将这个对象压入_app_ctx_stack中</p>
+</li>
+<li><p>所以我的周末项目的离线脚本查询数据库应该这样：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; from app import create_app</span><br><span class="line">&gt;&gt;&gt; app&#x3D;create_app()</span><br><span class="line">&gt;&gt;&gt; ctx&#x3D;app.app_context()</span><br><span class="line">&gt;&gt;&gt; ctx.push()</span><br><span class="line">&gt;&gt;&gt; from app import models</span><br><span class="line">&gt;&gt;&gt; models.User.query.all()</span><br><span class="line">[&lt;User &#39;mason&#39;&gt;, &lt;User &#39;Tim&#39;&gt;, &lt;User &#39;Lilian&#39;&gt;, &lt;User &#39;Tiger&#39;&gt;, &lt;User &#39;Roty&#39;&gt;, &lt;User &#39;JAY&#39;&gt;, &lt;User &#39;Zheng&#39;&gt;, &lt;User &#39;xuqiuli&#39;&gt;, &lt;User &#39;jay&#39;&gt;]eng&#39;&gt;, &lt;User &#39;xuqiuli&#39;&gt;, &lt;User &#39;jay&#39;&gt;]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><em>app_ctx_stack和</em>  _request_ctx_stack都是在flask.globals中的</p>
+</li>
+<li><p>两种上下文都是基于werkzeug.local.LocalStack的:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; from flask.globals import _app_ctx_stack</span><br><span class="line">&gt;&gt;&gt; _app_ctx_stack</span><br><span class="line">&lt;werkzeug.local.LocalStack object at 0x000002A83238CBE0&gt;</span><br><span class="line">&gt;&gt;&gt; _app_ctx_stack.top</span><br><span class="line">&lt;flask.ctx.AppContext object at 0x000002A8337C3CF8&gt;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="两个疑问"><a href="#两个疑问" class="headerlink" title="两个疑问"></a>两个疑问</h3><p>详见原文</p>
+<h3 id="APP-Factory的优点"><a href="#APP-Factory的优点" class="headerlink" title="APP Factory的优点"></a>APP Factory的优点</h3><p>在没有了解到Flask的上下文机制的时候感觉直接一个app不是很方便么。但是后来发现，如果只在一个app上进行操作的话，单元测试会非常麻烦，如果有多个测试需要进行的话，上一个测试就会污染下一个测试的app_context环境。另外这种模式在优化应用结构等方面也有突出的作用。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>针对离线脚本，我们不必每次手动创建app_context对象，然后压栈来获取数据，更好的方式应该是利用Flask-script模块进行离线测试</p>
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Flask</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Flask中的MongoEngine(一)</title>
+    <url>/2020/10/05/Flask%E4%B8%AD%E7%9A%84MongoEngine(%E4%B8%80)/</url>
+    <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>MongoDB是现在最流行的NoSQL数据库，也是在Flask中支持度最好的NoSQL数据库，它是一个和强大的文档数据库，文档储存在集合(collection)中，可以把相似的文档集合在一起。文档是由叫做BSON的格式来定义的，BSON是JSON的超集，BSON允许把JSON变成二进制储存，节省大量的空间。而MongoEngine是MongoDB的ORM，是很好用的python中的ORM之一</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>首先需要安装MongoDB，自行搜索官网安装</p>
+<p>然后用pip安装MongoEngine：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install Flask-MongoEngine</span><br></pre></td></tr></table></figure>
+
+<p>并且需要初始化：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">app&#x3D;Flask(__name__)</span><br><span class="line">mongo&#x3D;MongoEngine()</span><br><span class="line">mongo.init_app(app)</span><br></pre></td></tr></table></figure>
+
+<p>还需要在config.py配置参数：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">MONGODB_SETTINGS&#x3D;&#123;</span><br><span class="line">    &#39;db&#39;:&#39;local&#39;,</span><br><span class="line">    &#39;host&#39;:&#39;localhost&#39;,</span><br><span class="line">    &#39;port&#39;:27017</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="字段类型"><a href="#字段类型" class="headerlink" title="字段类型"></a>字段类型</h2><p>为了博客不要显得太累赘，<a href="https://www.jianshu.com/p/1e409f70fe4c">请参考</a></p>
+<p>其中的DynamicField可以接收任何形式的子段，可以用作一对多数据库的设计，具体见下文</p>
+<h2 id="文档类型"><a href="#文档类型" class="headerlink" title="文档类型"></a>文档类型</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Post(mongo.Document):</span><br><span class="line">    title&#x3D;StringField(request&#x3D;True)</span><br><span class="line">    text&#x3D;StringField()</span><br><span class="line">    publish_date&#x3D;DateTimeField(</span><br><span class="line">        default&#x3D;datetime.now()</span><br><span class="line">    )</span><br><span class="line">    def __repr__(self):</span><br><span class="line">        return &quot;&lt;Post   &#39;&#123;&#125;&#39;&gt;&quot;.format(self.title)</span><br></pre></td></tr></table></figure>
+
+<p>有三种</p>
+<ol>
+<li><p>mongo.Document继承</p>
+<p>只有在类中定义了的键会被保存到数据库中，定义过的键比如上面的title可以为空，其他没有定义过的键就会被忽略</p>
+</li>
+<li><p>mongo.DynamicDocument继承</p>
+<p>没有定义过的子段就会被定义成是DynamicField子段，也就是可以代表任何值的子段，并且会被保存到文档中</p>
+</li>
+<li><p>EmbeddedDocument继承</p>
+<p>事实上是一种内嵌的类型，可以由上面的字段类型中的EmbeddedDocumentField来表示</p>
+</li>
+</ol>
+<h2 id="meta属性"><a href="#meta属性" class="headerlink" title="meta属性"></a>meta属性</h2><p>这个属性是在文档中的一个很重要的属性，具体的子属性请参考：</p>
+<p><a href="https://my.oschina.net/leaf0s/blog/129966">https://my.oschina.net/leaf0s/blog/129966</a></p>
+<p>重要的讲一下：</p>
+<ul>
+<li><p>collection</p>
+<p>这个主要用于如果我们已经有了一个数据集，希望可以绑定在我们的新的数据集上，可以通过collection:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Post(mongo.Document):</span><br><span class="line">    ...</span><br><span class="line">    meta&#x3D;&#123;&#39;collection&#39;:&#39;user_posts&#39;&#125;</span><br><span class="line">class user_posts(mongo.Document):</span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>indexes</p>
+<p>   可以在集合上指定<code>索引</code>以加快查询速度。这是通过创建<code>indexes</code>在 <code>meta</code>字典中调用的索引规范列表完成的，其中索引规范可以是单个字段名称，包含多个字段名称的元组或包含完整索引定义的字典。</p>
+<p>   顺序可以通过在字段名前加上 +（用于升序）或-号（用于降序）来指定。请注意，方向只对多字段索引很重要。文本索引可以通过在字段名前添加一个$来指定。散列索引可以通过在字段名前添加＃来指定</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Page(mongo.Document):</span><br><span class="line">   ...</span><br><span class="line">   meta&#x3D;&#123;</span><br><span class="line">       indexes:[</span><br><span class="line">           &#39;title&#39;,</span><br><span class="line">            &#39;$title&#39;,  # 文本索引</span><br><span class="line">            &#39;#title&#39;,  # 散列索引</span><br><span class="line">            (&#39;title&#39;, &#39;-rating&#39;),</span><br><span class="line">            (&#39;category&#39;, &#39;_cls&#39;),</span><br><span class="line">            &#123;</span><br><span class="line">                &#39;fields&#39;: [&#39;created&#39;],</span><br><span class="line">                &#39;expireAfterSeconds&#39;: 3600</span><br><span class="line">            &#125;</span><br><span class="line">       ]</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>ordering</p>
+<p>这是用于查询的排序，‘+’号表示升序，’-‘号表示降序比如：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&quot;ordering&quot;:[&#39;-publish_date&#39;]</span><br></pre></td></tr></table></figure>
+
+<p>这样表示按照publish_date的降序排列</p>
+</li>
+<li><p>allow_inheritance</p>
+<p>这是一个布尔值，表示是否允许被继承</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Post(mongo.Ducument):</span><br><span class="line">	...</span><br><span class="line">	meta&#x3D;&#123;&#39;allow_inheritance&#39;:True&#125;</span><br><span class="line">class user(Post)</span><br><span class="line">	...</span><br></pre></td></tr></table></figure>
+
+<p>设置成True就可以被继承了</p>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="MongoDB的优势"><a href="#MongoDB的优势" class="headerlink" title="MongoDB的优势"></a>MongoDB的优势</h3><ol>
+<li>非常容易运行</li>
+<li>非常自由的Schema模型，而且可以很容易地和JSON类的数据结果映射起来，这对于程序员来于有很大的感染力（它完全符合程序员的逻辑思维），而且，程序员总是在项目可以做技术选型的人。</li>
+<li>成熟和分健壮，有记录，被真实的Use Case测试过，等等。对于那些喜欢选择成熟的技术的系统管理员和运营专业来说，这是一个很典型的选择。</li>
+<li>它单系统，低读并发的性能测试非常令人惊讶，而对于那些没有经验的评估者来说，这基本上来说是最重要的。</li>
+</ol>
+<p>Schema模型就是指MongoDB是没有表结构的，而是像上面class定义一些子段来约束数据类型的形式</p>
+<h3 id="MongoDB的劣势"><a href="#MongoDB的劣势" class="headerlink" title="MongoDB的劣势"></a>MongoDB的劣势</h3><p>很多很多，<a href="http://blog.jobbole.com/5701/">可以参考文章</a>，总结来说就是不稳定，当数据量大的时候耗资源，所以我认为数据库本省没有优劣之分，而是看我们什么样的业务需求</p>
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Flask，数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Flask中的MongoEngine(二)---操作数据</title>
+    <url>/2020/10/05/Flask%E4%B8%AD%E7%9A%84MongoEngine(%E4%BA%8C)---%E6%93%8D%E4%BD%9C%E6%95%B0%E6%8D%AE/</url>
+    <content><![CDATA[<p>我们继承了（一）中的class:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Post(mongo.Document):</span><br><span class="line">    title&#x3D;StringField(request&#x3D;True)</span><br><span class="line">    text&#x3D;StringField()</span><br><span class="line">    publish_date&#x3D;DateTimeField(</span><br><span class="line">        default&#x3D;datetime.now()</span><br><span class="line">    )</span><br><span class="line">    def __repr__(self):</span><br><span class="line">        return &quot;&lt;Post   &#39;&#123;&#125;&#39;&gt;&quot;.format(self.title)</span><br><span class="line">class User(mongo.Document):</span><br><span class="line">    nickname&#x3D;StringField(request&#x3D;True)</span><br></pre></td></tr></table></figure>
+
+<h2 id="创建数据"><a href="#创建数据" class="headerlink" title="创建数据"></a>创建数据</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; post&#x3D;Post()</span><br><span class="line">&gt;&gt;&gt; post.title&#x3D;&quot;name1&quot;</span><br><span class="line">&gt;&gt;&gt; post.text&#x3D;&quot;a new post&quot;</span><br><span class="line">&gt;&gt;&gt; post.save()</span><br><span class="line">&lt;Post   &#39;name1&#39;&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="写入级别"><a href="#写入级别" class="headerlink" title="写入级别"></a>写入级别</h2><p>在默认情况下，MongoDB不会等到已确认的数据写入磁盘，才会认为写入完成，可能会存在他认为写入完成但是实际上失败了的情况，比如我们的写入级别定义成写入到磁盘之前，这样可能没有存到磁盘上但是还是没有报错，所以我们需要一个write_concern关键字，写入级别代表了Mongo什么时候返回写入完成的状态</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#不会等待写入，发生错误也不会报错</span><br><span class="line">&gt;&gt;&gt;post.save(write_concern&#x3D;&#123;&#39;w&#39;:0&#125;)</span><br><span class="line">#不会等待写入，缺省行为</span><br><span class="line">&gt;&gt;&gt;post.save(write_concern&#x3D;&#123;&#39;w&#39;:1&#125;)</span><br><span class="line">#会等待写入</span><br><span class="line">&gt;&gt;&gt;post.save(write_concern&#x3D;&#123;&#39;w&#39;:1,&#39;j&#39;:True&#125;)</span><br></pre></td></tr></table></figure>
+
+<h2 id="读取数据"><a href="#读取数据" class="headerlink" title="读取数据"></a>读取数据</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; Post.objects.all()</span><br><span class="line">[&lt;Post   &#39;name1&#39;&gt;, &lt;Post   &#39;post1&#39;&gt;, &lt;Post   &#39;post2&#39;&gt;]</span><br><span class="line">&gt;&gt;&gt; Post.objects.first()</span><br><span class="line">&lt;Post   &#39;name1&#39;&gt;</span><br><span class="line">#只返回5个</span><br><span class="line">&gt;&gt;&gt;Post.objects.limit(5).all()</span><br><span class="line">#跳过前面5个，读取6-10个</span><br><span class="line">&gt;&gt;&gt;Post.objects.skip(5).limit(5).all()</span><br><span class="line"></span><br><span class="line">#排序</span><br><span class="line">&gt;&gt;&gt; Post.objects.order_by(&quot;+publish_date&quot;).all()</span><br><span class="line">[&lt;Post   &#39;name1&#39;&gt;, &lt;Post   &#39;post1&#39;&gt;, &lt;Post   &#39;post2&#39;&gt;]</span><br><span class="line">&gt;&gt;&gt; Post.objects.order_by(&quot;-publish_date&quot;).all()</span><br><span class="line">[&lt;Post   &#39;post1&#39;&gt;, &lt;Post   &#39;post2&#39;&gt;, &lt;Post   &#39;name1&#39;&gt;]</span><br><span class="line"></span><br><span class="line">#分页</span><br><span class="line">&gt;&gt;&gt; page&#x3D;Post.objects.paginate(1,10)</span><br><span class="line">&gt;&gt;&gt; page.items</span><br><span class="line">[&lt;Post   &#39;name1&#39;&gt;, &lt;Post   &#39;post1&#39;&gt;, &lt;Post   &#39;post2&#39;&gt;]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="过滤"><a href="#过滤" class="headerlink" title="过滤"></a>过滤</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; Post.objects(title&#x3D;&quot;post1&quot;)</span><br><span class="line">[&lt;Post   &#39;post1&#39;&gt;]</span><br><span class="line"></span><br><span class="line">#组合过滤</span><br><span class="line">#选出2019年3月14日以后创建的，并且title中不含“post”，text中不    #以&quot;Lorem&quot;开始的所有Post</span><br><span class="line">&gt;&gt;&gt;Post.objects(</span><br><span class="line">   title__not__icontains&#x3D;&quot;post&quot;,</span><br><span class="line">   text__istartswith&#x3D;&quot;Lorem&quot;,</span><br><span class="line">   publish_date__gt&#x3D;datetime.datetime(2019,3,14)</span><br><span class="line">).order_by(&quot;-publish_date&quot;).all()</span><br></pre></td></tr></table></figure>
+
+<h2 id="修改数据"><a href="#修改数据" class="headerlink" title="修改数据"></a>修改数据</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; Post.objects(title&#x3D;&quot;name1&quot;).update(text&#x3D;&quot;a new update text&quot;)</span><br><span class="line">1</span><br></pre></td></tr></table></figure>
+
+<p>如果查询只有返回一个值，那么可以用update_one</p>
+<p>如果Post有一个有tags的ListField，现在要找出有mongo标签但是没有Python标签的所有Post，并且把Python标签补充进去：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Post.objects(</span><br><span class="line">	tags__in&#x3D;&quot;mongo&quot;,</span><br><span class="line">	tags__not__in&#x3D;&quot;Python&quot;</span><br><span class="line">).update(push_tags&#x3D;&quot;Python&quot;,write_concern&#x3D;&#123;&#39;w&#39;:1,&#39;j&#39;:1&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>使用了push操作符，注意后面要加’_’，后面还要加上写入级别的参数。</p>
+<h2 id="删除数据"><a href="#删除数据" class="headerlink" title="删除数据"></a>删除数据</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Post.objects(title&#x3D;&quot;name1&quot;).delete()</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Flask中的flask_httpauth验证模块</title>
+    <url>/2020/10/05/Flask%E4%B8%AD%E7%9A%84flask_httpauth%E9%AA%8C%E8%AF%81%E6%A8%A1%E5%9D%97/</url>
+    <content><![CDATA[<h2 id="flask-httpauth"><a href="#flask-httpauth" class="headerlink" title="flask_httpauth"></a>flask_httpauth</h2><p>是一个简单的拓展，简化了Flask路由的HTTP认证</p>
+<h3 id="HTTPBasicAuth"><a href="#HTTPBasicAuth" class="headerlink" title="HTTPBasicAuth"></a>HTTPBasicAuth</h3><p>基本认证，也就是用户名密码验证</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from flask_httpauth import HTTPBasicAuth</span><br><span class="line">basic_auth&#x3D;HTTPBasicAuth()</span><br><span class="line"></span><br><span class="line">@basic_auth.verify_password</span><br><span class="line">def verify_password(username,password):</span><br><span class="line">    &quot;&#39;检查用户提供的用户名和密码&#39;&quot;</span><br><span class="line">    user&#x3D;User.query.filter_by(username&#x3D;username).first()</span><br><span class="line">    if user is None:</span><br><span class="line">        return False</span><br><span class="line">    g.current_user&#x3D;user  #手动定义g.current_user</span><br><span class="line">    return user.check_password(password)</span><br><span class="line"></span><br><span class="line">@basic_auth.error_handler</span><br><span class="line">def basic_auth_error():</span><br><span class="line">    return error_response(401)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">@bp.route(&#39;&#x2F;tokens&#39;,methods&#x3D;[&quot;POST&quot;])</span><br><span class="line">@basic_auth.login_required</span><br><span class="line">def get_token():</span><br><span class="line">    token&#x3D;g.current_user.get_jwt()</span><br><span class="line">    g.current_user.ping()</span><br><span class="line">    db.session.commit()</span><br><span class="line">    return jsonify(&#123;&#39;token&#39;:token&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>路由从/api/tokens POST进来，这个POST进来的数据是一个对象，类似：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">auth:&#123;</span><br><span class="line">      &#39;username&#39;:this.loginForm.username,</span><br><span class="line">      &#39;password&#39;:this.loginForm.password</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以看到我们进行登录操作时候请求是这样的：</p>
+<p><a href="https://i.loli.net/2019/08/20/EmJyHLdwCibolOU.png"><img src="https://i.loli.net/2019/08/20/EmJyHLdwCibolOU.png" alt="24.png"></a></p>
+<p>，框起来的头部字段就是包含我们username和password的一个base64加密值,然后进入服务器的basic_auth的verify_password验证，验证过了以后才会get_jwt()，返回token给用户</p>
+<h3 id="HTTPTokenAuth"><a href="#HTTPTokenAuth" class="headerlink" title="HTTPTokenAuth"></a>HTTPTokenAuth</h3><p>这是通过token令牌认证，安全性可靠性更高</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from flask_httpauth import HTTPTokenAuth</span><br><span class="line"></span><br><span class="line">@token_auth.verify_token</span><br><span class="line">def verify_token(token):</span><br><span class="line">    &#39;&#39;&#39;用于检查用户请求是否有token，并且token真实存在，还在有效期内&#39;&#39;&#39;</span><br><span class="line">    g.current_user&#x3D;User.verify_jwt(token) if token else None</span><br><span class="line">    if g.current_user:</span><br><span class="line">        g.current_user.ping()</span><br><span class="line">        db.session.commit()</span><br><span class="line">    return g.current_user is not None</span><br><span class="line"></span><br><span class="line">@token_auth.error_handler</span><br><span class="line">def token_auth_error():</span><br><span class="line">    &quot;&#39;Token 认证失败的时候&#39;&quot;</span><br><span class="line">    return error_response(401)</span><br></pre></td></tr></table></figure>
+
+<p>逻辑是和Basic一样的，POST到 /api/token的时候，就创建token，会返回这个token给客户端，之后客户端访问一些路由需要携带这个token访问才能通过token_auth的verify_token</p>
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Flask</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>IP与以太网的包收发操作(一)</title>
+    <url>/2020/10/05/IP%E4%B8%8E%E4%BB%A5%E5%A4%AA%E7%BD%91%E7%9A%84%E5%8C%85%E6%94%B6%E5%8F%91%E6%93%8D%E4%BD%9C(%E4%B8%80)/</url>
+    <content><![CDATA[<h3 id="包的定义"><a href="#包的定义" class="headerlink" title="包的定义"></a>包的定义</h3><p><a href="https://i.loli.net/2019/09/18/BV3ZvsqokXLWSCe.png"><img src="https://i.loli.net/2019/09/18/BV3ZvsqokXLWSCe.png" alt="26.png"></a></p>
+<p><a href="https://i.loli.net/2019/09/18/iTa9Jz43xXpeHLr.png"><img src="https://i.loli.net/2019/09/18/iTa9Jz43xXpeHLr.png" alt="27.png"></a></p>
+<p>发送方网络设备创建包，生成含有正确控制信息的头部，通过转发设备发送出去，转发设备中有路由表</p>
+<ul>
+<li>路由器根据目标地址判断下一个路由器位置</li>
+<li>集线器在子网中将网络包传输到下一个路由</li>
+</ul>
+<p>其中重要的两个头部：</p>
+<ol>
+<li>MAC头部</li>
+<li>IP头部</li>
+</ol>
+<p>IP协议根据IP头部中的IP信息找到传输方向，委托以太网发送的时候，IP协议会查找下一个路由器以太网地址（MAC地址），写入MAC头部。所以MAC头部时不断被改写的，根据路由器的路由表的找到系啊一个路由器的MAC地址。</p>
+<h3 id="包的收发"><a href="#包的收发" class="headerlink" title="包的收发"></a>包的收发</h3><p>IP模块只是整个数据包的起点，数据包通过集线器、路由器才能正确发送到接收端。</p>
+<p>TCP模块一开始委托IP模块发送数据，TCP模块要告诉清楚发送给谁，IP模块在整个数据包前面加上IP头部</p>
+<p><a href="https://i.loli.net/2019/09/18/glJ21BuM6HznRAh.png"><img src="https://i.loli.net/2019/09/18/glJ21BuM6HznRAh.png" alt="28.png"></a></p>
+<p>加上这两个头部就是IP模块的工作。</p>
+<p>然后包就会经过网络硬件，网卡将他们转换成光信号通过光纤或网线传输出去。</p>
+<p>接收的过程和发送的过程是相反的，信息先以电信号的形式从网线传输进来，然后由网卡将其转换为数字信息并传递给 IP 模块。</p>
+<p>接下来，IP 模块会将 MAC 头部和 IP 头部后面的内容，也就是 TCP 头部加上数据块，传递给 TCP 模块。</p>
+<p>接下来的操作就是我们之前讲过的 TCP 模块负责的部分了。</p>
+<p>注意这边IP模块的工作仅仅是收发工作，不进行错误处理比如只有TCP头部但是没有数据啊，它只会将数据包作为二进制储存起来，收或者发。</p>
+<h3 id="生成含接收方地址的IP头部"><a href="#生成含接收方地址的IP头部" class="headerlink" title="生成含接收方地址的IP头部"></a>生成含接收方地址的IP头部</h3><p>IP信息一开始是从应用程序来，然后再建立连接的时候告诉了TCP模块，TCP模块委托IP模块发送的时候IP才知道的。</p>
+<p><a href="https://i.loli.net/2019/09/18/kOlsExVKT2GNdAZ.png"><img src="https://i.loli.net/2019/09/18/kOlsExVKT2GNdAZ.png" alt="29.png"></a></p>
+<p><strong>如何判断把包交给哪块网卡</strong></p>
+<p>和路由器使用 IP 表判断下一个路由器位置的操作是一样的。</p>
+<p>因为协议栈的 IP 模块与路由器中负责包收发的部分都是根据 IP 协议规则来进行包收发操作的，所以它们也都用相同的方法来判断把包发送给谁。</p>
+<p><strong>查看路由表</strong></p>
+<p>这个“IP 表”叫作路由表，我们将在第 3 章探索路由器时详细介绍它的用法，这里先简单讲个大概。</p>
+<p>如图 2.18 所示，我们可以通过 route print命令来显示路由表。</p>
+<p><strong>Network Destination 网络目标列</strong></p>
+<p>例如TCP 模块告知的目标 IP 地址为 192.168.1.21，那么就和第 6 行的 192.168.1 的部分相匹配。</p>
+<p><strong>Interface 网络接口列</strong></p>
+<p>表示网卡等网络接口，这些网络接口可以将包发送给通信对象。</p>
+<p><strong>Gateway 网关列</strong></p>
+<p>表示下一个路由器的 IP 地址，将包发给这个 IP 地址，该地址对应的路由器就会将包转发到目标地址。</p>
+<p><strong>默认网关</strong></p>
+<p>路由表的第 1 行中，目标地址和子网掩码都是 0.0.0.0，这表示默认网关，如果其他所有条目都无法匹配，就会自动匹配这一行。</p>
+<p>这样一来，我们就可以判断出应该使用哪块网卡来发送包了，然后就可以在 IP 头部的发送方 IP 地址中填上这块网卡对应的 IP 地址。</p>
+<p><strong>TCP/UDP协议号</strong></p>
+<p>接下来还需要填写协议号，它表示包的内容是来自哪个模块的。</p>
+<p>例如，如果是 TCP 模块委托的内容，则设置为 06（十六进制），如果是 UDP 模块委托的内容，则设置为 17（十六进制），这些值都是按照规则来设置的。</p>
+<p>在现在我们使用的浏览器中，HTTP 请求消息都是通过 TCP 来传输的，因此这里就会填写表示 TCP 的 06（十六进制）。</p>
+<p>其他字段内也需要填写相应的值，但对大局没什么影响，我们会在第3 章进行介绍，这里就先省略了。</p>
+<p><a href="https://i.loli.net/2019/09/18/sUhtJy57pgaN2Zd.png"><img src="https://i.loli.net/2019/09/18/sUhtJy57pgaN2Zd.png" alt="30.png"></a></p>
+<h3 id="生成以太网用户MAC头部"><a href="#生成以太网用户MAC头部" class="headerlink" title="生成以太网用户MAC头部"></a>生成以太网用户MAC头部</h3><p><a href="https://i.loli.net/2019/09/18/HLxKT5jOfGicFba.png"><img src="https://i.loli.net/2019/09/18/HLxKT5jOfGicFba.png" alt="31.png"></a></p>
+<ul>
+<li>IP头部时32比特，但是MAC时48比特。</li>
+<li>MAC地址是生产网卡的时候放在网卡的ORM中的，读取一下就可以。后面会讲。</li>
+<li>最终接收方MAC地址是无法一步得到的，所以一开始的MAC接收方地址是根据上面路由表的Gateway栏的内容确定的，然后再不断改变</li>
+</ul>
+<h3 id="利用ARP查询目标路由器的MAC地址"><a href="#利用ARP查询目标路由器的MAC地址" class="headerlink" title="利用ARP查询目标路由器的MAC地址"></a>利用ARP查询目标路由器的MAC地址</h3><p><a href="https://i.loli.net/2019/09/18/oYzVkPnZAFMjlLx.png"><img src="https://i.loli.net/2019/09/18/oYzVkPnZAFMjlLx.png" alt="32.png"></a></p>
+<p>ARP是一种广播的形式，因为我们可以根据路由表知道我们需要发送系啊一个路由器的IP地址，所以我们只要利用ARP问一下：“IP是XXXX的MAC地址是啥？”就可以了。如果对方和自己再一个子网中，就可以查到MAC，并记录下来了</p>
+<p>为了避免每次发送都要ARP广播一下，就有ARP缓存，但是当IP地址发生变化的时候，缓存信息就不准了，所以ARP会过几分钟删除一下</p>
+<p>以太网和IP一样，不关心网络包的实际内容。</p>
+<p><a href="https://i.loli.net/2019/09/18/zAkgv7RMx93dm4C.png"><img src="https://i.loli.net/2019/09/18/zAkgv7RMx93dm4C.png" alt="33.png"></a></p>
+<ul>
+<li>网卡的ORM中保存着世界上唯一的MAC地址</li>
+<li>网卡中保存的MAC地址会由网卡驱动程序读取并交给MAC模块</li>
+</ul>
+<h3 id="网卡是如何将包转换成电信号并发送到网线中的"><a href="#网卡是如何将包转换成电信号并发送到网线中的" class="headerlink" title="网卡是如何将包转换成电信号并发送到网线中的"></a>网卡是如何将包转换成电信号并发送到网线中的</h3><p><strong>网卡驱动将包复制到缓冲区</strong></p>
+<p>网卡驱动从 IP 模块获取包之后，会将其复制到网卡内的缓冲区中，然后向MAC 模块发送发送包的命令。</p>
+<p><strong>MAC模块将包取出</strong></p>
+<p>接下来MAC 模块会将包从缓冲区中取出，并在开头加上报头和起始帧分界符，在末尾加上用于检测错误的帧校验序列（图 2.24）。</p>
+<p><a href="https://i.loli.net/2019/09/18/N5woLJf4ebEdqFH.png"><img src="https://i.loli.net/2019/09/18/N5woLJf4ebEdqFH.png" alt="34.png"></a></p>
+<p>报头是一串像 10101010…这样 1 和 0 交替出现的比特序列，长度为 56比特，它的作用是确定包的读取时机。</p>
+<p><a href="https://i.loli.net/2019/09/18/2PwYoc3lFQMVfSK.png"><img src="https://i.loli.net/2019/09/18/2PwYoc3lFQMVfSK.png" alt="35.png"></a></p>
+<p>用电信号来表达数字信息时，我们用 0 和 1 两种比特分别对应特定的电压和电流。</p>
+<p>连续出现111或000的信号，由于电压和电流没有变化，我们没办法判断出其中每个比特到底应该从哪里去切分。</p>
+<p>这时候就需要一个时钟信号</p>
+<p><a href="https://i.loli.net/2019/09/18/YoegslJz2hNuZAQ.png"><img src="https://i.loli.net/2019/09/18/YoegslJz2hNuZAQ.png" alt="36.png"></a></p>
+<p>这两种信号叠加在一起，发送方将这样的信号发给接收方。找到时钟信号的变化周期，就可以从信号c中提取出时钟信号b，通过接收信号c和时钟信号b计算出数据信号a。然后根据时钟信号b的变化周期，从数据信号a中读取相应的电压和电流值，并将其还原为 0 或 1 的比特了。</p>
+<p><strong>使用报头判断时钟信号的变化周期</strong></p>
+<p>时钟信号是以10Mbit/s或者100Mbit/s 这种固定频率进行变化的，</p>
+<p>我们不能一开始就发送包的数据，而是要在前面加上一段用来测量时钟信号的特殊信号，<strong>这就是报头的作用。</strong></p>
+<p>以太网根据速率和网线类型的不同分为多种派生方式，每种方式的信号形态也有差异。并不都是像本例中讲的这样，单纯通过电压和电流来表达 0 和 1 的。</p>
+<p>因此，101010…这样的报头数字信息在转换成电信号后，其波形也不一定都是图 2.25 中的那个样子，而是根据方式的不同而不同。但是，报头的作用和基本思路是一致的。</p>
+<p><strong>使用起始帧分界符标记包起始位置</strong></p>
+<p>报头后面的起始帧分界符在图 2.25 中也已经画出来了，它的末尾比特排列有少许变化。</p>
+<p>接收方以这一变化作为标记，从这里开始提取网络包数据。也就是说，起始帧分界符是一个用来表示包起始位置的标记。</p>
+<p><strong>使用FCS帧校验序列检查数据错误</strong></p>
+<p>末尾的 FCS（帧校验序列）用来检查包传输过程中因噪声导致的波形紊乱、数据错误。</p>
+<p>它是一串 32 比特的序列，是通过一个公式对包中从头到尾的所有内容进行计算而得出来的。</p>
+<p>在包传输过程中，如果受到噪声的干扰而导致其中的数据发生了变化，那么接收方计算出的 FCS 和发送方计算出的 FCS 就会不同，这样我们就可以判断出数据有没有错误。</p>
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+      <tags>
+        <tag>网络</tag>
+        <tag>TCP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>GIT分支管理</title>
+    <url>/2020/10/05/GIT%E5%88%86%E6%94%AF%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<h2 id="GIT分支管理"><a href="#GIT分支管理" class="headerlink" title="GIT分支管理"></a>GIT分支管理</h2><h3 id="创建分支"><a href="#创建分支" class="headerlink" title="创建分支"></a>创建分支</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git branch dev</span><br><span class="line">或者是</span><br><span class="line">git checkout -b dev &#x2F;&#x2F;创建并切换到这个分支</span><br></pre></td></tr></table></figure>
+
+<p>我们创建了分支以后，在当前分支创建一个demo.txt文件，然后加上一些内容，git add和git commit以后，在master分支下看不见demo.txt文件的，但是没有经过add和commit还是看得见的</p>
+<h3 id="删除分支"><a href="#删除分支" class="headerlink" title="删除分支"></a>删除分支</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git branch -d dev</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="合并分支"><a href="#合并分支" class="headerlink" title="合并分支"></a>合并分支</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git checkout master</span><br><span class="line">git merge -m &quot;描述&quot; dev</span><br><span class="line">git merge --no-ff   &#x2F;&#x2F;去掉快速合并，保留合并历史</span><br></pre></td></tr></table></figure>
+
+<p>切换到master分支，然后合并，在master分支下就可以看见dev分支修改的内容了</p>
+<h3 id="解决冲突"><a href="#解决冲突" class="headerlink" title="解决冲突"></a>解决冲突</h3><p>所谓冲突就是你在dev上修改了demo.txt，然后切换到master后又修改了demo.txt，然后git merge就会出现冲突，解决方案：</p>
+<ol>
+<li>git status查看冲突，git会提示你怎么发生冲突的</li>
+<li>git diff  查看发生冲突的文件，手动修改，git会用&lt;&lt;&lt;和====和&gt;&gt;&gt;来区别是哪些分支的修改</li>
+<li>然后手动git add、git commit</li>
+</ol>
+<h3 id="查看分支图和提交情况"><a href="#查看分支图和提交情况" class="headerlink" title="查看分支图和提交情况"></a>查看分支图和提交情况</h3><ol>
+<li>git log  查看提交历史</li>
+<li>git log –graph  查看分支图，会更加清晰</li>
+</ol>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>分支是一个非常强大的功能，一般在master上更新最新的版本，然后我们是在其他分支上面工作，通过合并来更新master。</p>
+]]></content>
+      <categories>
+        <category>Git</category>
+      </categories>
+      <tags>
+        <tag>Git</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>IP与以太网的包收发操作(二)</title>
+    <url>/2020/10/05/IP%E4%B8%8E%E4%BB%A5%E5%A4%AA%E7%BD%91%E7%9A%84%E5%8C%85%E6%94%B6%E5%8F%91%E6%93%8D%E4%BD%9C(%E4%BA%8C)/</url>
+    <content><![CDATA[<h2 id="向集线器发送网络包"><a href="#向集线器发送网络包" class="headerlink" title="向集线器发送网络包"></a>向集线器发送网络包</h2><p>加上报头、起始帧分界符和 FCS 之后，我们就可以将包通过网线发送出去了。</p>
+<h3 id="发送信号的半双工和全双工模式"><a href="#发送信号的半双工和全双工模式" class="headerlink" title="发送信号的半双工和全双工模式"></a><strong>发送信号的半双工和全双工模式</strong></h3><p>在半双工模式中，为了避免信号碰撞，首先要判断网线中是否存在其他设备发送的信号。</p>
+<p>如果有，则需要等待该信号传输完毕，因为如果在有信号时再发送一组信号，两组信号就会发生碰撞。</p>
+<p>当之前的信号传输完毕，或者本来就没有信号在传输的情况下，我们就可以开始发送信号了。</p>
+<p>MAC将数据包转换成电信号，然后由网卡中的PHY或者MAU模块进行发送。PHY除了简单的发送电信号以外，还需要监控线路中是否有其他的信号进来。</p>
+<h3 id="将服务器的响应包从IP传给TCP"><a href="#将服务器的响应包从IP传给TCP" class="headerlink" title="将服务器的响应包从IP传给TCP"></a>将服务器的响应包从IP传给TCP</h3><p>我们现在已经收到了一个web服务器返回的网络包，网卡驱动会给TCP/IP协议栈处理。IP模块检查IP头部，确保格式正确，然后查看接收方IP是否跟自己一样，如果不一样，IP模块会通过一个ICMA消息将错误告知发送方。</p>
+<p>如果IP正确，那么接下来IP协议有一个<strong>切片</strong>的功能，具体之后再讲。由于网线中只能传输小包，所以需要将网络包切成小块。然后IP模块工作结束以后，TCP模块就会根据IP头部中接收方和发送方IP以及TCP中接收方和发送方端口搜索套接字，然后根据套接字记录的状态进行操作。如果是传输状态，那么接收到的网络包就是应用程序需要的，所以就放到缓存中等待应用程序来取</p>
+<h3 id="UDP的收发操作"><a href="#UDP的收发操作" class="headerlink" title="UDP的收发操作"></a>UDP的收发操作</h3><p>TCP的收发非常复杂，光是连接阶段就有三次握手和四次挥手，但是TCP为什么要设计这么复杂？</p>
+<p>为了保障数据高效可靠的传输，TCP需要确保对方没有漏掉包，如果没有到就要重新发给他。如果说是一次性全发过去然后等待一个接收确认判断是否全部收到，如果没有就全部发一遍，就很低效。所以TCP做到了利用ACK号判断是否接收到，并只重发出错的包。</p>
+<p>但是如果是很小的数据，一个包就能装下，就不需要TCP这么复杂了吧，反正都是一个包重传，所以UDP应运而生。UDP头部只有双方IP和端口以及一个校验错误的信息。</p>
+<p>UDP只负责发送包，不监控发送错误。</p>
+<p>UDP在音频、视频数据的传输会用到，如果视频信息像TCP这样传输，一旦晚了一些就会造成卡顿，所以要用UDP快速发送。</p>
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+      <tags>
+        <tag>网络</tag>
+        <tag>TCP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>K-Means聚类</title>
+    <url>/2020/10/05/K-Means%E8%81%9A%E7%B1%BB/</url>
+    <content><![CDATA[<h2 id="聚类分析"><a href="#聚类分析" class="headerlink" title="聚类分析"></a>聚类分析</h2><p>数据组内的差别越小，数据组间的差别越大，分类效果会更好</p>
+<h2 id="K-Means"><a href="#K-Means" class="headerlink" title="K-Means"></a>K-Means</h2><h3 id="K均值算法"><a href="#K均值算法" class="headerlink" title="K均值算法"></a>K均值算法</h3><ul>
+<li>优点：易于实现</li>
+<li>缺点：大规模收敛中速度慢</li>
+</ul>
+<h3 id="基本算法逻辑："><a href="#基本算法逻辑：" class="headerlink" title="基本算法逻辑："></a>基本算法逻辑：</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">自动选取K个点作为初始质心</span><br><span class="line">repeat:</span><br><span class="line">	将每个点指派到最近的质心，形成K个簇</span><br><span class="line">    重新计算每个簇的簇心</span><br><span class="line">until:</span><br><span class="line">	簇不发生变化或者达到做大迭代次数为止</span><br></pre></td></tr></table></figure>
+
+<h3 id="簇心的计算"><a href="#簇心的计算" class="headerlink" title="簇心的计算"></a>簇心的计算</h3><p>采用<strong>误差平方和</strong>（SSE）作为聚类的目标函数</p>
+<p><a href="https://i.loli.net/2019/09/08/kFBSfEot29UH1c3.png"><img src="https://i.loli.net/2019/09/08/kFBSfEot29UH1c3.png" alt="25.png"></a></p>
+<p>SSE计算每个点到这个K心距离的均值，然后（所有距离-平均距离）/点数</p>
+<h3 id="K-Means算法的缺陷"><a href="#K-Means算法的缺陷" class="headerlink" title="K-Means算法的缺陷"></a>K-Means算法的缺陷</h3><p>k均值算法非常简单且使用广泛，但是其有主要的两个缺陷：</p>
+<ol>
+<li>K值需要预先给定，属于预先知识，很多情况下K值的估计是非常困难的，对于像计算全部微信用户的交往圈这样的场景就完全的没办法用K-Means进行。对于可以确定K值不会太大但不明确精确的K值的场景，可以进行迭代运算，然后找出Cost Function最小时所对应的K值，这个值往往能较好的描述有多少个簇类。</li>
+<li>K-Means算法对初始选取的聚类中心点是敏感的，不同的随机种子点得到的聚类结果完全不同</li>
+<li>K均值算法并不是很所有的数据类型。它不能处理非球形簇、不同尺寸和不同密度的簇，银冠指定足够大的簇的个数是他通常可以发现纯子簇。</li>
+<li>对离群点的数据进行聚类时，K均值也有问题，这种情况下，离群点检测和删除有很大的帮助。</li>
+</ol>
+<p>所以缺陷的问题主要是在初始质心的不确定性导致差别度太高以及聚类时候需要K*N次集计算操作效率的低下。</p>
+<h3 id="K-Means优化算法"><a href="#K-Means优化算法" class="headerlink" title="K-Means优化算法"></a>K-Means优化算法</h3><p>为了克服K-Means算法收敛于局部最小值的问题，提出了一种二分K-均值(bisecting K-means)</p>
+<h4 id="bisecting-K-means"><a href="#bisecting-K-means" class="headerlink" title="bisecting K-means"></a>bisecting K-means</h4><p>算法的伪代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">将所有的点看成是一个簇</span><br><span class="line">当簇小于数目k时</span><br><span class="line">    对于每一个簇</span><br><span class="line">        计算总误差</span><br><span class="line">        在给定的簇上进行K-均值聚类,k值为2</span><br><span class="line">        计算将该簇划分成两个簇后总误差</span><br><span class="line">    选择是的误差最小的那个簇进行划分</span><br></pre></td></tr></table></figure>
+
+<h4 id="Mini-Batch-k-Means"><a href="#Mini-Batch-k-Means" class="headerlink" title="Mini Batch k-Means"></a>Mini Batch k-Means</h4><p>在原始的K-means算法中，每一次的划分所有的样本都要参与运算，如果数据量非常大的话，这个时间是非常高的，因此有了一种分批处理的改进算法。<br>使用Mini Batch（分批处理）的方法对数据点之间的距离进行计算。<br>Mini Batch的好处：不必使用所有的数据样本，而是从不同类别的样本中抽取一部分样本来代表各自类型进行计算。n 由于计算样本量少，所以会相应的减少运行时间n 但另一方面抽样也必然会带来准确度的下降。</p>
+]]></content>
+      <categories>
+        <category>图像处理</category>
+      </categories>
+      <tags>
+        <tag>图像处理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python基础---元祖</title>
+    <url>/2020/10/05/Python%E5%9F%BA%E7%A1%80---%E5%85%83%E7%A5%96/</url>
+    <content><![CDATA[<h2 id="Python基础—元祖"><a href="#Python基础—元祖" class="headerlink" title="Python基础—元祖"></a>Python基础—元祖</h2><h3 id="不可变列表"><a href="#不可变列表" class="headerlink" title="不可变列表"></a>不可变列表</h3><p>元祖区别于list、dict最大的区别就是他<strong>是不可修改里面的数据</strong>的，所以没有append这样的方法，我们只能堆数据进行访问</p>
+<h3 id="元祖的一些方法"><a href="#元祖的一些方法" class="headerlink" title="元祖的一些方法"></a>元祖的一些方法</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; s1&#x3D;(1,2,3)</span><br><span class="line">&gt;&gt;&gt; s2&#x3D;(4,5,6)</span><br><span class="line">#拼接</span><br><span class="line">&gt;&gt;&gt; s1+s2</span><br><span class="line">(1, 2, 3, 4, 5, 6)</span><br><span class="line">&gt;&gt;&gt; s1.__add__(s2)#内置方法</span><br><span class="line">(1, 2, 3, 4, 5, 6)</span><br><span class="line"></span><br><span class="line">#是否含有指定元素</span><br><span class="line">&gt;&gt;&gt; 2 in s1</span><br><span class="line">True</span><br><span class="line">&gt;&gt;&gt; s1.__contains__(2)</span><br><span class="line">True</span><br><span class="line"></span><br><span class="line">#统计指定元素出现的次数</span><br><span class="line">&gt;&gt;&gt; s1.count(2)</span><br><span class="line">1</span><br><span class="line"></span><br><span class="line">#获取指定索引的元素</span><br><span class="line">&gt;&gt;&gt; s1[2]</span><br><span class="line">3</span><br><span class="line">&gt;&gt;&gt; s1.__getitem__(2)</span><br><span class="line">3</span><br><span class="line"></span><br><span class="line">#长度</span><br><span class="line">&gt;&gt;&gt; len(s1)</span><br><span class="line">3</span><br><span class="line"></span><br><span class="line">#指定元素第一次出现的索引</span><br><span class="line">&gt;&gt;&gt; s1.index(2)</span><br><span class="line">1</span><br><span class="line"></span><br><span class="line">#重复拼接</span><br><span class="line">&gt;&gt;&gt; s1*2</span><br><span class="line">(1, 2, 3, 1, 2, 3)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="具名元组"><a href="#具名元组" class="headerlink" title="具名元组"></a>具名元组</h3><p>具名元祖就好像一个mysql表，是带字段的。我们需要一个collections库的支持</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; from collections import namedtuple</span><br><span class="line">&gt;&gt;&gt; studen&#x3D;namedtuple(&quot;Student&quot;,&quot;name age grade&quot;)#一共有三个字段</span><br><span class="line">&gt;&gt;&gt; student1&#x3D;studen(&quot;Mason&quot;,&quot;19&quot;,&quot;100&quot;)#实例化</span><br><span class="line">&gt;&gt;&gt; student1</span><br><span class="line">Student(name&#x3D;&#39;Mason&#39;, age&#x3D;&#39;19&#39;, grade&#x3D;&#39;100&#39;)</span><br><span class="line">&gt;&gt;&gt; student1.name</span><br><span class="line">&#39;Mason&#39;</span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>具名元祖还有一些自己的专有属性</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; City&#x3D;namedtuple(&quot;City&quot;,&quot;name country polulation location&quot;)</span><br><span class="line">#打印字段名</span><br><span class="line">&gt;&gt;&gt; City._fields</span><br><span class="line">(&#39;name&#39;, &#39;country&#39;, &#39;polulation&#39;, &#39;location&#39;)</span><br><span class="line">#生成新实例</span><br><span class="line">&gt;&gt;&gt; late&#x3D;namedtuple(&quot;late&quot;,&quot;lat long&quot;)</span><br><span class="line">&gt;&gt;&gt; Beijing&#x3D;(&quot;Beijing&quot;,&quot;China&quot;,&quot;1000&quot;,late(28,36))</span><br><span class="line">&gt;&gt;&gt; Beijing&#x3D;City._make(Beijing)</span><br><span class="line">&gt;&gt;&gt; Beijing</span><br><span class="line">City(name&#x3D;&#39;Beijing&#39;, country&#x3D;&#39;China&#39;, polulation&#x3D;&#39;1000&#39;, location&#x3D;late(lat&#x3D;28, long&#x3D;36))</span><br><span class="line">#将具名元祖转换成OrderDict</span><br><span class="line">&gt;&gt;&gt; Beijing&#x3D;Beijing._asdict()</span><br><span class="line">&gt;&gt;&gt; Beijing</span><br><span class="line">OrderedDict([(&#39;name&#39;, &#39;Beijing&#39;), (&#39;country&#39;, &#39;China&#39;), (&#39;polulation&#39;, &#39;1000&#39;), (&#39;location&#39;, late(lat&#x3D;28, long&#x3D;36))])</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Python基础</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python基础---列表</title>
+    <url>/2020/10/05/Python%E5%9F%BA%E7%A1%80---%E5%88%97%E8%A1%A8/</url>
+    <content><![CDATA[<h2 id="Python基础—列表"><a href="#Python基础—列表" class="headerlink" title="Python基础—列表"></a>Python基础—列表</h2><p>内置的函数如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; list1&#x3D;[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;]</span><br><span class="line">&gt;&gt;&gt; list2&#x3D;[&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;]</span><br><span class="line">&gt;&gt;&gt; list1[0]</span><br><span class="line">&#39;a&#39;</span><br><span class="line">&gt;&gt;&gt; list1[1:]</span><br><span class="line">[&#39;b&#39;, &#39;c&#39;, &#39;d&#39;]</span><br><span class="line">&gt;&gt;&gt; list1[1:3]</span><br><span class="line">[&#39;b&#39;, &#39;c&#39;]</span><br><span class="line"></span><br><span class="line">#更新元素</span><br><span class="line">&gt;&gt;&gt; list1[3]&#x3D;&quot;h&quot;</span><br><span class="line">&gt;&gt;&gt; list1</span><br><span class="line">[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;h&#39;]</span><br><span class="line">#删除元素1</span><br><span class="line">&gt;&gt;&gt; del list1[2]</span><br><span class="line">&gt;&gt;&gt; list1</span><br><span class="line">[&#39;a&#39;, &#39;b&#39;, &#39;h&#39;]</span><br><span class="line">#删除元素2，参数是索引，它会返回被删除的元素</span><br><span class="line">&gt;&gt;&gt; s&#x3D;list1.pop(2)</span><br><span class="line">#增加一个元素</span><br><span class="line">&gt;&gt;&gt; list1.append(&quot;r&quot;)</span><br><span class="line">&gt;&gt;&gt; list1</span><br><span class="line">[&#39;a&#39;, &#39;b&#39;, &#39;h&#39;, &#39;r&#39;]</span><br><span class="line">#元素反转</span><br><span class="line">&gt;&gt;&gt; list1.reverse()</span><br><span class="line">#排序</span><br><span class="line">&gt;&gt;&gt; list1</span><br><span class="line">[&#39;a&#39;, &#39;b&#39;, &#39;r&#39;]</span><br></pre></td></tr></table></figure>
+
+<p>具体见<a href="http://www.runoob.com/python3/python3-list.html">http://www.runoob.com/python3/python3-list.html</a></p>
+]]></content>
+      <categories>
+        <category>Python基础</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SIFT特征提取</title>
+    <url>/2020/10/05/SIFT%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/</url>
+    <content><![CDATA[<h2 id="SIFT特征提取"><a href="#SIFT特征提取" class="headerlink" title="SIFT特征提取"></a>SIFT特征提取</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>尺度不变特征转换(Scale-invariant feature transform或SIFT)是一种电脑视觉的算法用来侦测与描述影像中的局部性特征，它在空间尺度中寻找极值点，并提取出其位置、尺度、旋转不变量，此算法由 David Lowe在1999年所发表，2004年完善总结。</p>
+<h3 id="基本步骤"><a href="#基本步骤" class="headerlink" title="基本步骤"></a>基本步骤</h3><p>SIFT的基本步骤有：</p>
+<ol>
+<li>尺度空间极值检测</li>
+<li>关键点定位</li>
+<li>关键点方向参数</li>
+<li>关键点描述符</li>
+<li>关键点匹配</li>
+</ol>
+<h3 id="尺度空间极值检测"><a href="#尺度空间极值检测" class="headerlink" title="尺度空间极值检测"></a>尺度空间极值检测</h3><p>通俗的讲，尺度空间就是图像在不同的分辨率下的样式，再回到尺度空间，在摄像头中，计算机无法分辨一个景物的尺度信息。而人眼不同，除了人大脑里已经对物体有了基本的概念，比如你在几十米外可以认出一个苹果，你把苹果放在眼前也能认出这是一个苹果，所以这两者是在不同的尺度空间内的，我们把不同尺度空间下的图像堆叠在一起，就叫做<strong>图像金字塔</strong></p>
+<p>![](D:\Day Day Up\MyBlog\source\images\01.png)</p>
+<p>所以只要把不同的尺度空间下的图像制作成图像金字塔，那就可以将计算机模拟人眼实现不同分辨率下的物体识别</p>
+<p>那么这个事情在SIFT中交给高斯核的方程来构建了，简单来讲高斯核函数的参数有三个G(x,y,σ)，其中的σ就是所谓的“”尺度空间“，σ越小，就相当于图片越小，所以被模糊的也就越少。所以，大尺度图片可以对应成一个图像离远处观看，是个大致轮廓，小尺度图片可以对应成离近处观看，有更多细节。</p>
+<h3 id="高斯金字塔"><a href="#高斯金字塔" class="headerlink" title="高斯金字塔"></a>高斯金字塔</h3><p>构建了尺度空间以后，需要找到关键点，所以要实现一个高斯金字塔来实现对关键点的提取。高斯金字塔中每一层都是一个图像，代表着不同尺度空间下的图像，每一层的σ不同代表尺度空间。</p>
+<p><img src="https://img-blog.csdn.net/20171011194630113?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast"></p>
+<h3 id="高斯差分金字塔DOG"><a href="#高斯差分金字塔DOG" class="headerlink" title="高斯差分金字塔DOG"></a>高斯差分金字塔DOG</h3><p>将上面的每相邻两层的图像做差，得到的图像叠成一个金字塔，就是高斯差分金字塔</p>
+<h3 id="DOG局部特征点检测"><a href="#DOG局部特征点检测" class="headerlink" title="DOG局部特征点检测"></a>DOG局部特征点检测</h3><p>有了差分金字塔，现在便可以计算关键点（特征点）。由于金字塔的模型不是二维模型，而是一个三维模型，这里计算极值的方法也不再是二维求取极值的方法。</p>
+<p>计算一个某一个点是否是局部最大值，在离散的三维空间当中，以该点为中心，检测它周围的点。类似魔方的中心位置一样，如下图中的“叉”就是待计算是否是局部极值点。</p>
+<p><img src="https://img-blog.csdn.net/20171011195906092?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast"></p>
+<p>这里说明，局部极值点都是在同一个组当中进行的，所以肯定有这样的问题，某一组当中的第一个图和最后一个图层没有前一张图和下一张图，那该怎么计算？ 解决办法是，在用高斯模糊，在高斯金字塔多“模糊”出三张来凑数，所以在DOG中多出两张。</p>
+<h3 id="关键点定位"><a href="#关键点定位" class="headerlink" title="关键点定位"></a>关键点定位</h3><p>这个步骤就是需要处理一些不太稳定的特征点，就是那些低对比度的或者不稳定的边界点</p>
+<h3 id="关键点设定方向参数"><a href="#关键点设定方向参数" class="headerlink" title="关键点设定方向参数"></a>关键点设定方向参数</h3><p><img src="https://img-blog.csdn.net/20171011211708356?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast"></p>
+<h3 id="关键点描述符"><a href="#关键点描述符" class="headerlink" title="关键点描述符"></a>关键点描述符</h3><p>设置了方向参数以后，就获得了旋转不变性</p>
+<p>接下来对每个关键点用一组向量将这个关键点描述出来，使其不随着光照、视角等等影响而改变。该描述符不但涉及关键点，而且还涉及到关键点周围的像素，使其有更强的不变特性。</p>
+<p>基本原理是选取关键点周围16×16的像素区域，分成4个小块，每个小块创建8个bin的直方图，这总共的128个信息的向量就是关键点描述符的主要内容。此外还要测量，以达到光照、旋转的稳定性。如图</p>
+<p><img src="https://img-blog.csdn.net/20171011213937664?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdGVuZ2ZlaTQ2MTgwNzkxNA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast"></p>
+<h3 id="关键点匹配"><a href="#关键点匹配" class="headerlink" title="关键点匹配"></a>关键点匹配</h3><p>分别对模板图和实时图建立关键点描述符集合，通过对比关键点描述符来判断两个关键点是否相同。128个信息的向量使用欧氏距离来实现。</p>
+<p>在关键点的匹配当中，使用的搜索算法为区域搜索算法当中最常用的k-d树实现。</p>
+<p>比较之后，需要在进行消除错配点才算完成。</p>
+<h3 id="词袋模型"><a href="#词袋模型" class="headerlink" title="词袋模型"></a>词袋模型</h3><p>所谓的词袋模型就是将一张图片的特征点进行聚类，比如kmeans聚类，然后将不同的特征点聚类到n个生成的词典（n个聚类中心）中，这样就形成了很多的”词袋“。当一张图片进行比对的时候，就可以统计每个特征点落在不同字典的次数（也就是统计词频），这样以后就可以判断两张图片的相似度了。</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>图像处理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Session跟Cookie的故事(一)</title>
+    <url>/2020/10/05/Session%E8%B7%9FCookie%E7%9A%84%E6%95%85%E4%BA%8B(%E4%B8%80)/</url>
+    <content><![CDATA[<h2 id="Session跟Cookie的故事-一"><a href="#Session跟Cookie的故事-一" class="headerlink" title="Session跟Cookie的故事(一)"></a>Session跟Cookie的故事(一)</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>话说本来觉得这个问题很基础自己也搞得懂，但是今天被同学一问，感觉回答的不够彻底，还是为它写一篇吧（也是找了很多资料）</p>
+<h3 id="cookie"><a href="#cookie" class="headerlink" title="cookie"></a>cookie</h3><p>网络早期最大的问题之一是怎样管理状态，服务器怎么样判别两个客户端发送的请求。后来有个牛人（自行谷歌）将cookie引入。</p>
+<p>由于http是无状态的协议，每次发送请求都会重新连接，所以从网络连接来看服务器根本识别不了哪个客户端，所以嘛，cookie就是请求的一个身份证，每次到达服务器就会“滴”刷一下卡，服务器开门看看这次又是谁，看了身份证后才知道，哦原来是你。</p>
+<p>所以cookie是一个很小的文本文件，是浏览器储存在本机上的，每次请求都会发送响应的cookie</p>
+<p><img src="D:\MyBlog\image\1203274-20171209110335937-33858862.png"></p>
+<p>用户首次访问服务器就会返回一个唯一的id，可以根据这个id访问更多信息</p>
+<p>cookie可以包含任意的信息，不仅仅是id，客户端会记录服务器返回来的Set-Cookie首部中的cookie内容。并将cookie存储在浏览器的cookie数据库中，当用户访问同一站点时，浏览器就会挑选当时该站点颁发的id=XXX的身份证（cookie），并在Cookie请求首部发送过去。</p>
+<h3 id="cookie的类型"><a href="#cookie的类型" class="headerlink" title="cookie的类型"></a>cookie的类型</h3><p>cookie有两种：</p>
+<ol>
+<li>持久性。就是会保存在本机的硬盘中</li>
+<li>会话cookie。就是关闭浏览器就会销毁</li>
+</ol>
+<p>cookie的过期时间是可以设置</p>
+<h3 id="cookie的属性"><a href="#cookie的属性" class="headerlink" title="cookie的属性"></a>cookie的属性</h3><h4 id="域"><a href="#域" class="headerlink" title="域"></a>域</h4><p>服务器产生cookie给请求客户端的时候可以向set-cookie响应添加一个domain</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Set-Cookie: name&#x3D;&quot;shen&quot;; domain&#x3D;&quot;www.sss.com&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这样当用户得到这个cookie后再访问<a href="http://www.sss.com的时候就会携带这个cookie了/">www.sss.com的时候就会携带这个cookie了</a></p>
+<h4 id="路径"><a href="#路径" class="headerlink" title="路径"></a>路径</h4><p>如果我们设置：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Set-Cookie: id&#x3D;&quot;123&quot;; domain&#x3D;&quot;www.sss.com&quot;</span><br><span class="line">Set-Cookie: name&#x3D;&quot;shen&quot;; domain&#x3D;&quot;www.sss.com&quot;；path&#x3D;&quot;&#x2F;login&quot;</span><br></pre></td></tr></table></figure>
+
+<p>那么访问<a href="http://www.sss.cn/login%E5%B0%B1%E4%BC%9A%E8%8E%B7%E5%BE%97">www.sss.cn/login就会获得</a></p>
+<p>cookie:name=”shen”</p>
+<p>cookie:id=”123”</p>
+<p>访问<a href="http://www.sss.cn会获得/">www.sss.cn会获得</a></p>
+<p>cookie:id=”123”</p>
+<h4 id="secure"><a href="#secure" class="headerlink" title="secure"></a>secure</h4><p>一个带有安全属性的 cookie 只有在请求使用SSL和HTTPS协议的时候才会被发送到服务器。</p>
+<h4 id="Expires"><a href="#Expires" class="headerlink" title="Expires"></a>Expires</h4><p>设置cookie的过期时间，有标准格式（自行谷歌）</p>
+<h4 id="操作cookie"><a href="#操作cookie" class="headerlink" title="操作cookie"></a>操作cookie</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">document.cookie &#x3D; &quot;user&#x3D;wang&quot;;</span><br><span class="line">console.log(document.cookie);</span><br></pre></td></tr></table></figure>
+
+<p>禁止javascript操作cookie（为避免跨域脚本(xss)攻击，通过javascript的document.cookie无法访问带有HttpOnly标记的cookie。）</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Set-Cookie: id&#x3D;123; Expires&#x3D;Wed, 21 Oct 2017 07:28:00 GMT; Secure; HttpOnly</span><br></pre></td></tr></table></figure>
+
+<h4 id="第三方cookie"><a href="#第三方cookie" class="headerlink" title="第三方cookie"></a>第三方cookie</h4><p>为什么有些网站会有一些广告位展示一些你访问过的信息，他们怎么知道的？</p>
+<p>其实就是下面的过程：<br>用户访问<a href="http://www.sss.cn，这个网站里面有一张图片是某个广告公司的，www.advertisement.com，当请求这张图片的时候这个广告商就会给你中上一个cookie：">www.sss.cn，这个网站里面有一张图片是某个广告公司的，www.advertisement.com，当请求这张图片的时候这个广告商就会给你中上一个cookie：</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Set-Cookie: user&#x3D;&quot;wang&quot;;like&#x3D;&quot;a&quot;; domain&#x3D;&quot;advertisement.com&quot;</span><br></pre></td></tr></table></figure>
+
+<p>like就是你浏览的信息</p>
+<p>然后你又去访问<a href="http://www.ttt.cn,巧了,这个网站也是有www.advertisement.com的广告,那么请求这张图片的时候就会携带上次的cookie,广告商服务器知道了是你,然后读取了cookie里的like,哇,知道了你喜欢什么,然后广告商就会给你展示什么样的图片(厉害吧)/">www.ttt.cn，巧了，这个网站也是有www.advertisement.com的广告，那么请求这张图片的时候就会携带上次的cookie，广告商服务器知道了是你，然后读取了cookie里的like，哇，知道了你喜欢什么，然后广告商就会给你展示什么样的图片（厉害吧）</a></p>
+<h3 id="安全问题"><a href="#安全问题" class="headerlink" title="安全问题"></a>安全问题</h3><p>其实有很多的web安全问题都是针对cookie的，比如跨站请求伪造CSRF这些攻击手段，我在后面也会发一些安全方面的总结，虽然不是信息安全方向，但是还是要了解一些的</p>
+<p>（未完待续…）</p>
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>网络</tag>
+        <tag>web</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Session跟Cookie的故事(二)</title>
+    <url>/2020/10/05/Session%E8%B7%9FCookie%E7%9A%84%E6%95%85%E4%BA%8B(%E4%BA%8C)/</url>
+    <content><![CDATA[<h2 id="Session跟Cookie的故事（二）"><a href="#Session跟Cookie的故事（二）" class="headerlink" title="Session跟Cookie的故事（二）"></a>Session跟Cookie的故事（二）</h2><h3 id="为什么会有session"><a href="#为什么会有session" class="headerlink" title="为什么会有session"></a>为什么会有session</h3><p>因为http协议是无状态的，也就是这个请求跟上一个请求之间是没有任何联系的，所以session就是可以实现保存这种状态而不改变http的无状态定义</p>
+<h3 id="session的特点"><a href="#session的特点" class="headerlink" title="session的特点"></a>session的特点</h3><ul>
+<li>session是保存在服务端的，而不是客户端携带的</li>
+<li>客户端发送请求到服务器，服务器会辨别客户端有没有带有sessionid，如果没有就会在服务端的session序列中重新添加一个sessionid，并且这是这个客户端专有的</li>
+<li>session其实本质上是一个基于服务端的临时数据库，里面的数据都有生命周期</li>
+<li>session也是依赖于cookie，cookie会携带用户的sessionid，服务器通过解析cookie来确定状态，这样的cookie叫做会话cookie（在故事一里面提到过）如果在禁用cookie的情况下，还可以通过url来解决，也即是在url后面添加一个参数。这两种方式本质上都一样，只不过是服务端的解析方式不同罢了</li>
+<li>因为用cookie辅助识别session是一种常见的方式，所以如果没有人为地设置cookie的生命周期的话，默认关闭浏览器cookie就会消失，随之sessionid也会消失，所以session就会销毁。如果生命周期长一点的话就不一样了哈哈。</li>
+</ul>
+<h3 id="深入理解session的跟踪机制"><a href="#深入理解session的跟踪机制" class="headerlink" title="深入理解session的跟踪机制"></a>深入理解session的跟踪机制</h3><p>从客户端发送请求到生成一个sessionid保存在cookie中返回给客户端的过程中发生了什么？</p>
+<p>其实Servlet API规范中定义了一个HttpSession接口，HttpSession接口定义了各种管理和操作会话状态的方法。一个客户端对应一个HttpSession对象。</p>
+<p>但是不是客户端一请求服务器就会生成sessionid的，拿python为例，请求通过了服务器到了wsgi层，然后到了web应用，如果里面出现了一句创建HttpSession对象的语句 ，像：HttpServletRequest.getSession(true)</p>
+<p>才会生成sessionid，tomcat(一个免费的开放源代码的Web 应用服务器)的ManagerBase类提供创建sessionid的方法：<strong>随机数+时间+jvmid</strong>；</p>
+<h3 id="session的生命周期"><a href="#session的生命周期" class="headerlink" title="session的生命周期"></a>session的生命周期</h3><p>创建：服务器第一次getSession(true)</p>
+<p>销毁：服务器关闭/过期，或者手动invalidata</p>
+<h3 id="session的缺点"><a href="#session的缺点" class="headerlink" title="session的缺点"></a>session的缺点</h3><p>session如果在后端大量储存的话，会导致查询的迟钝，所以这时候其实最好的方式就是之前提过的缓存或者数据库，比如redis或者mongodb</p>
+<h3 id="安全问题"><a href="#安全问题" class="headerlink" title="安全问题"></a>安全问题</h3><h4 id="会话固定"><a href="#会话固定" class="headerlink" title="会话固定"></a>会话固定</h4><p>我们发现，session的管理方式就是服务器判断cookie中的sessionid，是否访问过，没有就可以创建一个sessionid，储存一些用户信息。所以如果小明发生给小红一个<a href="https://www.jd.com/?SID=1234%EF%BC%8C%E5%B0%8F%E7%BA%A2%E6%89%93%E5%BC%80%E5%8F%91%E7%8E%B0%E6%98%AF%E4%BA%AC%E4%B8%9C%E7%9A%84%EF%BC%8C%E6%89%80%E4%BB%A5%E7%99%BB%E9%99%86%E4%BA%86%EF%BC%8C%E7%84%B6%E5%90%8E%E5%B0%8F%E6%98%8E%E4%B9%9F%E5%B0%B1%E5%8F%AF%E4%BB%A5%E4%BB%A5%E5%B0%8F%E7%BA%A2%E7%9A%84%E8%BA%AB%E4%BB%BD%E8%BF%9B%E8%A1%8C%E8%B4%AD%E4%B9%B0%E4%BA%86%EF%BC%8C%E5%9B%A0%E4%B8%BA%E4%BB%96%E5%92%8C%E5%B0%8F%E7%BA%A2%E7%94%A8%E7%9A%84%E6%98%AF%E4%B8%80%E4%B8%AAsessionid%E3%80%82">https://www.jd.com/?SID=1234，小红打开发现是京东的，所以登陆了，然后小明也就可以以小红的身份进行购买了，因为他和小红用的是一个sessionid。</a></p>
+<p>另外因为sessionid可以用cookie储存，所以cookie的被劫持风险也会存在</p>
+<h4 id="如何解决"><a href="#如何解决" class="headerlink" title="如何解决"></a>如何解决</h4><ol>
+<li><p>保护你的cookie</p>
+<p>可以让你的cookie设置成HttpOnly，这样JS就不能修改了</p>
+</li>
+<li><p>cookie和session的过期时间保持一致，session的生命是动态的，只要用户在到期时间内不断调用初始化session，那么会话会一直保持（刷新页面）</p>
+</li>
+<li><p>可以在session保存的时候添加一个请求中的User-agent，这样能够识别不同客户端的请求，拦截攻击者的客户端</p>
+</li>
+<li><p>正确的关闭会话的方式。用户退出的时候应该删除cookie，或者主动删除session</p>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>网络</tag>
+        <tag>web</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TCP/IP传输 协议栈与网卡（二）</title>
+    <url>/2020/10/05/TCPIP%E4%BC%A0%E8%BE%93%20%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E7%BD%91%E5%8D%A1%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="第二章-TCP-IP传输-协议栈与网卡（一）"><a href="#第二章-TCP-IP传输-协议栈与网卡（一）" class="headerlink" title="第二章 TCP/IP传输 协议栈与网卡（一）"></a>第二章 TCP/IP传输 协议栈与网卡（一）</h2><p>首先我们知道，客户端会委托操作系统完成数据的传输，操作系统中的协议栈帮了很多忙，所以这里会探索协议栈内部是如何处理数据和传输数据的</p>
+<h3 id="2-1创建套接字"><a href="#2-1创建套接字" class="headerlink" title="2.1创建套接字"></a>2.1创建套接字</h3><p><strong>协议栈的内部：</strong></p>
+<p><a href="https://i.loli.net/2019/08/12/B4twU5i61Cv827M.png"><img src="https://i.loli.net/2019/08/12/B4twU5i61Cv827M.png" alt="11.png"></a></p>
+<p>由上到下各个部分会委派工作给下级</p>
+<p>应用程序下面是Socket库，其中包括解析器，解析器用来向DNS服务器发送查询信息</p>
+<p>操作系统内部包括协议栈。协议栈上半部分包含TCP和UDP两部分，一般浏览器、邮件等都是TCP传输，而DNS查询都是UDP传输。</p>
+<p>下面一半是IP模块，这是用来发送网络包的模块。包含ICMP和ARP协议，关于两种协议后面再讲。</p>
+<p><strong>套接字的实体</strong></p>
+<p>套接字本身是一个比较抽象的概念，如果非要给一个实体，协议栈内部有一块存放控制信息的内存空间，记录了用于控制通信操作的控制信息，例如通信对象的I端口、通信操作的状态等。所以这个内存空间就是套接字的实体</p>
+<p>协议栈在执行操作的时候需要参考这个控制信息，就像需要知道对方的IP、端口，才能找到对方的位置发送数据。还比如协议栈在发送了数据以后，可能会出现丢包的情况，所以套接字也就是控制信息中需要记录是否已经接收到响应以及已经过了多少时间，参考这些信息协议栈才决定是否需要重新发送数据。</p>
+<p>在windows中可以用命令netstat查看套接字的实体：</p>
+<p><a href="https://i.loli.net/2019/08/12/Pt4xXgsILm9TFrz.png"><img src="https://i.loli.net/2019/08/12/Pt4xXgsILm9TFrz.png" alt="12.PNG"></a></p>
+<p><strong>调用socket时的操作</strong></p>
+<p><a href="https://i.loli.net/2019/08/12/gCYKoRqZmjvskcJ.png"><img src="https://i.loli.net/2019/08/12/gCYKoRqZmjvskcJ.png" alt="13.png"></a></p>
+<p>我们参考上图。</p>
+<p>①创建套接字阶段</p>
+<p>协议栈会根据应用程序的申请执行创建套接字。协议栈首先会分配一个内存空间存放套接字，这里面要放上控制信息，但是现在时刚开始，所以只需要放上一些初始信息就可以了。然后协议栈会把这个套接字的描述符告诉应用程序，接下来收发数据的时候应用程序只需要出示这个描述符给协议栈，协议栈就能找到对应的套接字，并且因为套接字中已经储存了IP、端口信息，所以不再需要应用程序每次都重新告诉协议栈这些信息了。</p>
+<h3 id="2-2连接服务器"><a href="#2-2连接服务器" class="headerlink" title="2.2连接服务器"></a>2.2连接服务器</h3><p>套接字刚刚创建完的时候，里面没有存放东西，即便应用要发送数据，协议栈也不知道发给谁。服务器那边也是，创建了套接字也不知道和谁通信。所以这里需要②connect操作。客户端需要告诉服务器：“我是XXX端口是XXX，我想和你通信”，发送请求通信信息也是连接的目的之一。</p>
+<p>可见，连接也是交换控制信息的过程，因为控制信息里面保存着必要的信息，两者交换的控制信息时按照通信规则来确定的，只要按照规则就能成功交换并“读得懂”对方的控制信息，不会因为操作系统的不同而导致交换失败。</p>
+<p>连接操作的时候也会分配出一块缓冲区用于后面数据收发的暂时数据存放。</p>
+<p><strong>负责保存控制信息的头部</strong></p>
+<p>控制信息可以分为两类</p>
+<p>第一类是<strong>客户端和服务器相互联络时交换的控制信息</strong></p>
+<p><a href="https://i.loli.net/2019/08/12/z2a7khOSxN6FUEJ.png"><img src="https://i.loli.net/2019/08/12/z2a7khOSxN6FUEJ.png" alt="14.png"></a></p>
+<p>这些都是TCP协议中定义的控制信息，这些只要是以TCP通信的基础上，连接、收发、断开都是需要这些控制信息。这些控制信息会被加到网络包的开头：</p>
+<p><a href="https://i.loli.net/2019/08/12/tsANIkdan9oDcZi.png"><img src="https://i.loli.net/2019/08/12/tsANIkdan9oDcZi.png" alt="15.png"></a></p>
+<p>头部就是用来记录和交换控制信息的。</p>
+<p>还有一类控制信息<strong>保存在套接字中</strong>，用来控制协议栈操作，之前有说过。应用程序传递来的信息以及通信对象接受到的信息都会保存在这里</p>
+<p><strong>连接操作的实际过程</strong></p>
+<p> connect(&lt;描述符&gt;,&lt;服务器IP和端口&gt;)</p>
+<p>这些信息会传递给协议栈中的TCP模块，TCP模块才能与对方服务器的TCP模块交换控制信息。这个交互过程主要下面的步骤：</p>
+<ol>
+<li>客户端创建一个TCP头部，就像上面的表格，主要是发送方和接收方的IP、端口，这样客户端的套接字就找到了对方的套接字，然后把头部中的控制位SYN设置1，表示连接</li>
+<li>TCP模块将信息传递给IP模块委托它发送，然后服务器上的IP模块收到信息以后会转交给服务器的TCP模块，TCP模块在信息的头部找到端口号，然后按照这个端口号找到对应的处于等待状态的套接字。找到以后，把该套接字状态改为<strong>正在连接</strong>。然后服务器会把响应按照刚才客户端的操作一样发送给客户端的IP模块，也要修改头部信息中的IP、端口等，还要把ACK设为1表示已经收到。</li>
+<li>信息到达客户端的IP模块、TCP模块，然后胡检测头部信息确认是否连接成功，成功以后会向套接字中写入服务器的IP地址、端口等信息，然后将状态设置成连接完毕</li>
+<li>最后其实客户端也要将头部信息ACK设置为1，重新发回给服务器才算完成。</li>
+</ol>
+<p>这样connect操作才算完成，控制流程被交回应用程序。</p>
+<h3 id="收发数据"><a href="#收发数据" class="headerlink" title="收发数据"></a>收发数据</h3><p>控制流程回到应用程序以后，就要调用Socket库的write()方法委托协议栈发送数据了。</p>
+<p>注意，协议栈发送数据不是一拿到数据就发送的，而是先将数据放在缓冲区，等放到一定数量了才会发送出去，而这个数量不是死的，而是根据操作系统和版本会变，但都是根据下面几点来权衡的：</p>
+<ol>
+<li>每个网络包能容纳的长度。MTU是一个网络包的最大长度，是包含头部长度的，所以MTU减去头部长度就是数据长度，叫做MSS</li>
+<li>时间。协议栈内部有一个计时器，如果等待缓冲的时间太长，就会直接发送出去，而不再等到数据长度接近MSS。</li>
+</ol>
+<p>应用程序也可以指定协议栈发送的方式是马上发送还是缓冲发送，像浏览器这样的会话型应用就是直接发送的。</p>
+<p><a href="https://i.loli.net/2019/08/14/qsIcOJyd4YFQHmh.png"><img src="https://i.loli.net/2019/08/14/qsIcOJyd4YFQHmh.png" alt="16.png"></a></p>
+<p><strong>对较大的数据进行拆分</strong></p>
+<p>如果请求的数据很大的话，就需要以MSS为标准进行拆分。根据拆分情况，如果在需要发送的时候就加上TCP头部，并加上套接字中记录的IP和端口号，交给IP模块发送。</p>
+<p><a href="https://i.loli.net/2019/08/14/ku8IB7VcSJgsvxE.png"><img src="https://i.loli.net/2019/08/14/ku8IB7VcSJgsvxE.png" alt="17.png"></a></p>
+<p><strong>使用ACK号确认网络包已经收到</strong></p>
+<p>TCP模块拆分大数据的时候，会先算好每一块数据相当于从头开始的第几字节，然后发送这个数据块时将字节数放在TCP头部的“序号”字段（可以看前面的表格）。然后发送数据的长度也要告知接收方，但是这个不放在头部，因为数据包总长度减去头部长就是数据块长度。这样可以检查出有没有丢包，比如上一个包序号从120开始，后一个从121那么就是对的，如果是240那么就不对了。</p>
+<p>接收方会将收到数据是总数据的第几字节返回给发送方，这个数值就是TCP头部的ACK。</p>
+<p>很形象的是，客户端：“现在发送的是从第XXX字节开始的数据，一共有XXX字节”，服务器：“到XXX字节的数据我已经收到”。服务器说的XXX字节就是服务器返回的ACK</p>
+<p><a href="https://i.loli.net/2019/08/14/LuWG7l3tjwDAf8Z.png"><img src="https://i.loli.net/2019/08/14/LuWG7l3tjwDAf8Z.png" alt="18.png"></a></p>
+<p>另外，序号不一定是从1开始的，而是随机分配的，那么这个随机分配的初始值应该在连接操作时就告诉接收方，所以我们记得我们的connect阶段是有将SYN设置成1，这里设置成1的同时还要设置字段的序号的值也就是初始值。同样客户端也需要知道服务器的初始字段序号，过程是一样的。</p>
+<p>双方交换序号和ACK的connect过程如图所示：</p>
+<p><a href="https://i.loli.net/2019/08/14/HVgkdahlEsKNYT3.png"><img src="https://i.loli.net/2019/08/14/HVgkdahlEsKNYT3.png" alt="19.png"></a></p>
+<p>双方发送数据的过程如下：</p>
+<p><a href="https://i.loli.net/2019/08/14/Fa2hzDZEu493ITi.png"><img src="https://i.loli.net/2019/08/14/Fa2hzDZEu493ITi.png" alt="20.png"></a></p>
+<p>双方发送数据的时候都会携带序号发送出去，通过返回的ACK号就可以确定对方是否收到了数据，在得到对方的确认之前，发送的数据都会在发送缓冲区，如果对方没返回对应的ACK号，那么就重新发送。</p>
+<p><strong>根据网络包平均往返时间调整ACK号等待时间</strong></p>
+<p>比如当网络繁忙时，ACK返回比较慢，如果ACK等待时间太短，就可能出现数据包重复传递情况。这时候需要等待时间长一些，但是如果太长的话，就会影响重传效率，影响网速</p>
+<p>所以TCP通过动态调整，在发送数据过程持续测量ACK返回时间，如果变慢了，就延长等待，如果变快了，就缩短。</p>
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+      <tags>
+        <tag>网络</tag>
+        <tag>TCP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TCP/IP传输 协议栈与网卡（二）</title>
+    <url>/2020/10/05/TCPIP%E4%BC%A0%E8%BE%93%20%E5%8D%8F%E8%AE%AE%E6%A0%88%E4%B8%8E%E7%BD%91%E5%8D%A1%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="第二章-TCP-IP传输-协议栈与网卡（二）"><a href="#第二章-TCP-IP传输-协议栈与网卡（二）" class="headerlink" title="第二章 TCP/IP传输 协议栈与网卡（二）"></a>第二章 TCP/IP传输 协议栈与网卡（二）</h2><h3 id="使用窗口有效管理ACK号"><a href="#使用窗口有效管理ACK号" class="headerlink" title="使用窗口有效管理ACK号"></a>使用窗口有效管理ACK号</h3><p>前面讲到发送一个包后等待ACK返回然后继续发送。但是如果发送方在这段时间什么也不做，就会比较浪费时间，所以TCP采用<strong>滑动窗口</strong>的方法，不等待ACK，而是直接继续发送后面的包。</p>
+<p>但是有可能会出现发送频率超过接收方处理数据的速度。其实接受方有一个接受缓冲区，提前来的包会在缓冲区里。如果缓冲区满了，溢出了怎么办？滑动窗口就解决了。</p>
+<p><a href="https://i.loli.net/2019/08/14/ao5IFOzmUn4WP6t.png"><img src="https://i.loli.net/2019/08/14/ao5IFOzmUn4WP6t.png" alt="21.png"></a></p>
+<p>接收方会通过TCP头部的窗口字段，告诉发送发自己还能暂存多少数据量，这样发送方就不会发送过多的数据包了。</p>
+<p>能够接受的最大数据量叫做<strong>窗口大小</strong></p>
+<p><strong>ACK与窗口的合并</strong></p>
+<p>我们知道，窗口大小是需要实时改变的，那么什么时候改变呢？其实每当应用程序在接收缓冲区内取出数据时，接收区的容量变大了，那么这时候就需要改变窗口大小。</p>
+<p>ACK号则是接收方接收到完整数据以后才会返回给发送方，所以看起来像是接收方接收到数据，返回ACK，然后过一段时间数据被取出来以后，再改变窗口大小。这两步如果需要两个单独的包来发送给发送方，那么效率就太低了。</p>
+<p>所以接受方在改变ACK或者窗口大小时不会马上发送响应包，而是等待一会，如果有新的ACK那就换程新的，因为ACK只是待变“我”已经收到的数据时第几字节，或者如果有窗口更新，那么也可以放在一个包里面发送出去，反正它们都是修改TCP头部字段</p>
+<h3 id="接受HTTP响应"><a href="#接受HTTP响应" class="headerlink" title="接受HTTP响应"></a>接受HTTP响应</h3><p>浏览器委托协议栈的TCP/IP模块发送完HTTP请求后，浏览器依旧需要接受数据，这也是协议栈的工作</p>
+<p>首先浏览器调用read()，委托协议栈读取接收缓冲区的数据，如果还没有数据但会，那么就会暂时挂起。如果有数据了，之前已经讲过了，检查网络包的头部信息，核对序号、窗口大小、检查数据块等，然后返回ACK号。协议栈将数据暂存到应用程序的接收缓冲区，这其实是复制黏贴的操作，然后协议栈还需要找机会返回ACK和窗口更新</p>
+<h3 id="从服务器断开并删除套接字"><a href="#从服务器断开并删除套接字" class="headerlink" title="从服务器断开并删除套接字"></a>从服务器断开并删除套接字</h3><p>发送方确定数据已经发送完毕的时候，就是断开连接的时间点。协议栈允许任何一方发起断开过程。以服务器一方为例，服务器的应用程序就会调用close()，服务器的协议栈会发送断开信息的头部，具体就是将头部的FIN比特设置为1。然后通过IP模块发送数据。</p>
+<p><a href="https://i.loli.net/2019/08/19/aLd4eD5WGRgjkQw.png"><img src="https://i.loli.net/2019/08/19/aLd4eD5WGRgjkQw.png" alt="22.png"></a></p>
+<p>客户端收到以后，判断FIN是否为1，如果是，那么就会将自己的套接字标记为断开状态，然后客户端也会返回一个含ACK号的包。完成以后，协议栈就可以等待给应用程序读取数据了。</p>
+<p>这时候如果浏览器调用了read，那么协议栈不会马上返回数据给浏览器，而是告诉浏览器，所有数据已经接收完毕，然后浏览器也会调用close，调用以后协议栈一样返回一个FIN为1的数据包给服务器，至此，通信全部结束。</p>
+<p>瞬间感觉讲了那么多，但是这么多事情客户端和服务器之间通过协议栈只需要毫秒级别就可以完成，不可思议~</p>
+<p>以下是全部过程：</p>
+<p><a href="https://i.loli.net/2019/08/19/IvmNYhUXAxgSDOT.png"><img src="https://i.loli.net/2019/08/19/IvmNYhUXAxgSDOT.png" alt="23.png"></a></p>
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+      <tags>
+        <tag>网络</tag>
+        <tag>TCP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Vector浅析(一)--基本用法</title>
+    <url>/2020/10/05/Vector%E6%B5%85%E6%9E%90(%E4%B8%80)--%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/</url>
+    <content><![CDATA[<h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">vector</span> &lt;<span class="keyword">int</span>&gt; Name(<span class="number">10</span>,<span class="number">1</span>);   <span class="comment">//十个都是1</span></span><br><span class="line"><span class="built_in">vector</span> &lt;<span class="keyword">int</span>&gt; Name&#123;<span class="number">10</span>,<span class="number">12</span>&#125;;  <span class="comment">//两个值，分别为10和12</span></span><br><span class="line"><span class="keyword">int</span> b[<span class="number">7</span>]=&#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>&#125;;</span><br><span class="line"><span class="function"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; <span class="title">a</span><span class="params">(b,b+<span class="number">7</span>）;</span></span></span><br></pre></td></tr></table></figure>
+
+<h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><p><img src="https://i.loli.net/2020/06/14/5SZtA32CyMirBzQ.png" alt="屏幕快照 2020-06-14 下午11.01.07.png"></p>
+<h3 id="emplace-back-与-push-back"><a href="#emplace-back-与-push-back" class="headerlink" title="emplace_back 与 push_back"></a>emplace_back 与 push_back</h3><p>push_back 原本是需要先通过构造函数创建对象，然后通过拷贝构造函数创建临时变量存放这个对象，然后把这个对象移动到vector中。</p>
+<p>然后push_back在c++11中进化成了直接构造函数后直接move到容器中</p>
+<p>更快些？emplace_back函数直接让构造函数构造的对象放到了容器，剪去了move操作</p>
+<p>所以emplace_back快在逻辑操作上</p>
+<p>参考代码：<a href="https://en.cppreference.com/w/cpp/container/vector/emplace_back">https://en.cppreference.com/w/cpp/container/vector/emplace_back</a></p>
+]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+        <tag>STL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Web浏览器----协议栈</title>
+    <url>/2020/10/05/Web%E6%B5%8F%E8%A7%88%E5%99%A8----%E5%8D%8F%E8%AE%AE%E6%A0%88/</url>
+    <content><![CDATA[<h2 id="第一章-Web浏览器—-协议栈"><a href="#第一章-Web浏览器—-协议栈" class="headerlink" title="第一章 Web浏览器—-协议栈"></a>第一章 Web浏览器—-协议栈</h2><p>我们知道了IP地址以后，就需要委托<strong>操作系统内部的协议栈</strong>发送消息了。这一操作也需要Socket库中的程序组件，而且需要多个程序按顺序执行才能完成</p>
+<p><a href="https://i.loli.net/2019/08/11/el51h8xiuRHbGwA.png"><img src="https://i.loli.net/2019/08/11/el51h8xiuRHbGwA.png" alt="09.png"></a></p>
+<p>图中这一条管道其实是实际不存在的，这条虚拟管道的两侧的出入口叫做<strong>套接字</strong>。实际过程是服务器先建立套接字，然后等待客户端连接，客户端开始发送请求的时候协议栈会帮助客户端创建套接字并连接管道。而Socket库中的程序时用来委托协议栈操作的</p>
+<h3 id="创建套接字阶段"><a href="#创建套接字阶段" class="headerlink" title="创建套接字阶段"></a>创建套接字阶段</h3><p><a href="https://i.loli.net/2019/08/11/lCLipUTK6xkyuBz.png"><img src="https://i.loli.net/2019/08/11/lCLipUTK6xkyuBz.png" alt="10.png"></a></p>
+<p>①创建套接字阶段会调用Socket中的socket程序，这个程序会委托协议栈，让协议栈创建套接字。协议栈会返回一个<strong>描述符</strong>，这个描述符时做什么用的？打个比方，我们的浏览器可以同时打开多个网页，同时访问多个Web服务器，那么每与一个服务器进行连接，就需要一个套接字入口，那么协议栈怎么知道你要用哪个套接字进行通信，所以这时候只要浏览器出示描述符，协议栈就明白了。</p>
+<h3 id="连接阶段"><a href="#连接阶段" class="headerlink" title="连接阶段"></a>连接阶段</h3><p>接下来我们需要委托协议栈将本机的套接字和对面服务器的套接字连接起来，所以这时候就需要调用②connect程序。它有三个参数设置</p>
+<ul>
+<li>描述符。也就是在创建套接字的时候，协议栈返回的描述符。connect会将应用程序指定的描述符告诉协议栈，协议栈通过识别描述符判断通过哪个套接字进行连接</li>
+<li>服务器IP地址。也就是你要访问的Web服务器的IP地址。</li>
+<li>端口。这里的端口号就是指定和对面服务器哪个套接字连接，服务器上一个端口对应一个套接字。因为客户端也无法知道服务器上套接字的描述符，所以无法通过描述符知道与哪个套接字连接，所以只能通过端口。</li>
+</ul>
+<p>可能还有疑问，客户端连接服务器的时候，需要知道服务器的端口来识别套接字，但是服务器返回给客户端信息的时候也得知道客户端的端口吧。其实协议栈会为客户端创建的套接字随机分配一个端口，协议栈进行连接操作的时候，会告诉服务器分配的端口号。</p>
+<p>连接成功以后，协议栈会将对方的IP地址和端口号保存在套接字中，一个套接字是有五元组{SRC-IP, SRC-PORT, DEST-IP, DEST-PORT, PROTOCOL}，即客户端的ip和端口号＋服务端IP和80端口号+协议栈创建套接字。</p>
+<h3 id="通信阶段"><a href="#通信阶段" class="headerlink" title="通信阶段"></a>通信阶段</h3><p>套接字连接了以后，通道就搭建起来了，这时候要发送数据就需要③write来发送数据。</p>
+<p>应用程序在内存中准备好需要发送的数据，也就是生成的HTTP消息体，然后只需要出示刚才建立的套接字的描述符，就可以通过对应的管道发送数据了。</p>
+<p>接受消息是通过③read程序委托协议栈执行的，协议栈将收到的信息放在缓存中，应用程序就会自己取出来</p>
+<h3 id="断开阶段"><a href="#断开阶段" class="headerlink" title="断开阶段"></a>断开阶段</h3><p>read操作会告诉浏览器收发数据操作已经完成，浏览器知道以后就会调用Socket的close操作，断开连接。服务器也会断开连接</p>
+<h3 id="为什么服务器上同一个端口可以连接多个客户端"><a href="#为什么服务器上同一个端口可以连接多个客户端" class="headerlink" title="为什么服务器上同一个端口可以连接多个客户端"></a>为什么服务器上同一个端口可以连接多个客户端</h3><p>服务器上一个端口是一个套接字，当收到连接请求的时候，就会根据客户端的ip和端口号＋服务端IP和80端口号+协议创建套接字，然后可以创建一个线程或者一个协程来通过刚才的套接字和客户端通信。</p>
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+      <tags>
+        <tag>网络</tag>
+        <tag>TCP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>TCP/IP传输 协议栈与网卡（二）</title>
+    <url>/2020/10/05/Web%E6%B5%8F%E8%A7%88%E5%99%A8%E2%80%94-DNS/</url>
+    <content><![CDATA[<h2 id="第一章-Web浏览器—-DNS"><a href="#第一章-Web浏览器—-DNS" class="headerlink" title="第一章 Web浏览器—-DNS"></a>第一章 Web浏览器—-DNS</h2><h3 id="浏览器解析URL"><a href="#浏览器解析URL" class="headerlink" title="浏览器解析URL"></a>浏览器解析URL</h3><p>对于我们在浏览器上输入的网址，比如<a href="http://www.baidu.com我们的浏览器首先第一步是需要解析它,就是这个url是什么意思,然后浏览器才能去做其他事情,我们举个例子/">www.baidu.com我们的浏览器首先第一步是需要解析它，就是这个URL是什么意思，然后浏览器才能去做其他事情，我们举个例子</a></p>
+<p><a href="http://www.glass.com/dir1/file.html">http://www.glass.com/dir1/file.html</a></p>
+<p>对于这个网址，浏览器解析成：</p>
+<ul>
+<li>http 协议名，其他的还有https、ftp等</li>
+<li><a href="http://www.glass.com,代表服务器的域名,**这里也可以用服务器的ip地址来表示*/">www.glass.com，代表服务器的域名，*<em>这里也可以用服务器的IP地址来表示</em></a>*</li>
+<li>/dir1/file.html，代表访问的数据源的路径</li>
+</ul>
+<p>但是我们一般看见的网址不是这样直接访问html文件的而</p>
+<ol>
+<li><a href="http://www.glass.com/">http://www.glass.com/</a></li>
+<li><a href="http://www.glass.com/">http://www.glass.com</a></li>
+</ol>
+<p>那么这样两种URL是有什么不同呢，第一种表示访问根目录下的默认文件，一般是index.html。第二种更过分了，目录名都没有给，其实这个一般在web服务器中默认的目录实在~/var/www/html文件夹下的（可自定义）</p>
+<h3 id="HTTP协议"><a href="#HTTP协议" class="headerlink" title="HTTP协议"></a>HTTP协议</h3><p>解析完url以后，我们就需要需要知道访问的目标在哪里，然后生成我们的消息（请求），然后通过网络发送给服务器。</p>
+<p>HTTP协议定义了客户端与服务器之间通信的基本格式，主要包括：</p>
+<ol>
+<li>怎么操作：也就是我们以什么方式去请求，常见的有GET、POST、DELETE、PUT等</li>
+<li>对什么操作：就是指定的web服务器的IP</li>
+<li>操作的内容：也成消息体，就是需要发送给服务器的消息</li>
+</ol>
+<p>发送完请求以后，就会收到服务器返回的响应，得到需要的信息</p>
+<h3 id="向DNS服务器查询Web服务器的IP地址"><a href="#向DNS服务器查询Web服务器的IP地址" class="headerlink" title="向DNS服务器查询Web服务器的IP地址"></a>向DNS服务器查询Web服务器的IP地址</h3><p>因为我们的url中一般都是域名，但是域名只是一个服务器的昵称，我们需要它的地址才能进行访问。那么IP地址具体是指什么呢？</p>
+<p><strong>局域网</strong></p>
+<p>公司里的局域网都是基于TCP/IP的思路设计的，它的结构一般都是几台用一个集线器连接起来的计算机组成一个 <strong>子网</strong>，然后这些子网通过路由器连接起来组成一个巨大的网络，就形成了局域网</p>
+<p><strong>IP地址</strong></p>
+<p>在网络中，每个设备都会有一个地址，就像是你家里的地址 xx省xx市xx镇xx小区xx号，IP地址也是一样的意思，IP地址包括网络号和主机号两部分</p>
+<p>IP地址是由32位组成的，8位一组，分成4组形成，常见的格式有：</p>
+<ul>
+<li>10.11.12.13</li>
+<li>10.11.12.13/255.255.255.0</li>
+<li>10.11.12.0/24</li>
+<li>10.11.12.255/24</li>
+</ul>
+<p>后面的附加部分是子网掩码，也是一组32位的数字左边一半都为1表示网络号，右边一半都为0表示主机号。IP地址的网络号，也就是10.11.12；主机号就是后面的13，如果这个主机号为</p>
+<ul>
+<li>8个位上都是0，就表示整个子网</li>
+<li>8个位上都是1，也就是255，表示向整个子网上的设备发送数据包，也就是广播</li>
+</ul>
+<h3 id="DNS服务器"><a href="#DNS服务器" class="headerlink" title="DNS服务器"></a>DNS服务器</h3><p>查询IP地址的过程其实很简单，无非就是，客户端问：“IP地址是啥”，服务器回答：“是xxx”。所以在我们的电脑上一定是有DNS服务器对应的DNS客户端，那么这个客户端就叫做 <strong>DNS解析器</strong>简称 <strong>解析器</strong>。解析器包含在操作系统 <strong>SOCKET库</strong>中的一段程序，那么这个SOCKET库是什么东西呢</p>
+<p><strong>SOCKET库</strong>就是一个基于C语言开发的一个具有网络功能的库</p>
+<p><strong>通过解析器向DNS发送查询</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;应用程序&gt;（&lt;参数&gt;）</span><br><span class="line">&#123;</span><br><span class="line">   &lt;内存地址&gt;&#x3D;gethostbyname(&quot;www.glass.com&quot;)</span><br><span class="line">   ....</span><br><span class="line">   &lt;发送HTTP消息&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>客户端调用了gethostbyname方法以后，就会启动操作系统的解析器，在SOCKET库中，解析器的基本逻辑是</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">gethostbyname&#123;</span><br><span class="line">  生成的发送给DNS的查询消息</span><br><span class="line">  向DNS发送消息</span><br><span class="line">  接受返回的消息</span><br><span class="line">  从响应信息中取出IP地址，存到&lt;内存地址&gt;中</span><br><span class="line">  返回给应用程序</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而，解析器本身是不具备信息的收发功能的，而是调用了操作系统内部的 <strong>协议栈</strong>，协议栈帮助通过网卡发送消息。这里需要注意的是返回的IP地址解析器是会放到内存中去的，应用程序只需要存内存中读取就可以了</p>
+<p>我们计算机的DNS服务器的IP地址是我们自定义的，如果不知道DNS服务器IP，那么这一切都是徒劳</p>
+<p>DNS服务器收到查询消息以后，根据消息中的查询内容进行查询，如果要访问的服务器已经在DNS上注册的话，解析记录就能够被找到，然后IP地址就会被写入响应信息中返回给客户端。客户端收到消息以后，经过协议栈传递给解析器，解析器将IP地址放到内存中，应用程序就可以在内存中读取IP地址了</p>
+<p><a href="https://i.loli.net/2019/08/11/JkNIeqMVKbFlQuz.png"><img src="https://i.loli.net/2019/08/11/JkNIeqMVKbFlQuz.png" alt="06.png"></a></p>
+<h3 id="全世界DNS服务器大接力"><a href="#全世界DNS服务器大接力" class="headerlink" title="全世界DNS服务器大接力"></a>全世界DNS服务器大接力</h3><p>前面介绍了如何向DNS服务器发送查询信息，然后来讲一讲DNS服务器的工作原理</p>
+<p><strong>客户端的查询消息</strong></p>
+<p>一共包含三方面：</p>
+<ol>
+<li><p>域名</p>
+<p>域名就是服务器、邮件服务器的名称</p>
+</li>
+<li><p>Class</p>
+<p>用来识别网络中的信息，但是现在除了互联网没有其他网络，所以Class只代表互联网的IN</p>
+</li>
+<li><p>记录类型</p>
+<p>A 是 Address 的缩写。</p>
+<p>MX是Mail exchange的缩写，邮件交换。</p>
+</li>
+</ol>
+<p><a href="https://i.loli.net/2019/08/11/t3jgv5Xebd8VJFn.png"><img src="https://i.loli.net/2019/08/11/t3jgv5Xebd8VJFn.png" alt="07.png"></a></p>
+<p>所以，简单来说DNS服务器内部有很多条解析记录，然后它会根据查询消息中的三个信息点进行对应查询。</p>
+<h3 id="域名的层次结构"><a href="#域名的层次结构" class="headerlink" title="域名的层次结构"></a>域名的层次结构</h3><p>互联网中有那么多的服务器，所以不可能所有的解析记录都放在一台DNS服务器上进行查询。所以DNS服务器中的所有信息都是按照域名以分层次的结构来保存的。</p>
+<p>比如<a href="http://www.lab.glasscom.com,它的层次是以'.'划分,越往右层级越高,所以查询过程也是从左往右也就是从"www"到"com"/">www.lab.glasscom.com，它的层次是以’.’划分，越往右层级越高，所以查询过程也是从左往右也就是从”www”到”com”</a></p>
+<p><strong>一台服务器可能有多域的信息，但是一个域只能放在一个DNS中</strong>，所以如果现在有一个公司的域是example.co.jp，那么如果这个公司有两个集团，他们所使用的WEB服务器都是一个公司内部的，所以所以可以为这两个集团分配下级域名sub1.example.co.ip和sub2.example.co.ip。</p>
+<p><strong>寻找对应的DNS服务器并查询IP</strong></p>
+<p>基本思想是下级域的IP地址注册到上一级域的DNS上。比如管理lab.example.com的DNS的IP地址注册到example.com的DNS服务器上，以此类推</p>
+<p>你可能认为上面的com、cn这样的都是顶层域了，但是其实还有一个根域，是一个‘.’，完整的域是这样的<a href="http://www.example.com/">www.example.com</a>. 所以，根域的DNS服务器信息要注册到所有的DNS中，这样客户端找到任意一个DNS，就可以访问到根域的IP，然后一路向下顺藤摸瓜找到对应的DNS</p>
+<p>那么当客户端发送完消息以后DNS之间是如何查询的呢？看图：</p>
+<p><a href="https://i.loli.net/2019/08/11/Vybu31PpxnrKCIW.png"><img src="https://i.loli.net/2019/08/11/Vybu31PpxnrKCIW.png" alt="08.png"></a></p>
+<p><strong>通过缓存加快查询</strong></p>
+<p>现实中，查询域的时候没必要都从根域开始查找，所以DNS有一个缓存机制，会缓存最近查询过的域名，下次查询的时候就可以直接跳过一些域查询了</p>
+]]></content>
+      <categories>
+        <category>计算机网络</category>
+      </categories>
+      <tags>
+        <tag>网络</tag>
+        <tag>TCP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker下用goaccess监控nginx</title>
+    <url>/2020/10/05/docker%E4%B8%8B%E7%94%A8goaccess%E7%9B%91%E6%8E%A7nginx/</url>
+    <content><![CDATA[<h3 id="安装goaccess"><a href="#安装goaccess" class="headerlink" title="安装goaccess"></a>安装goaccess</h3><p><a href="https://goaccess.io/get-started">https://goaccess.io/get-started</a></p>
+<p>可以选择apt或者apk，但是我们是在docker下，我们容器的操作系统是alpine，所以我们</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">apk add --no-cache goaccess</span><br></pre></td></tr></table></figure>
+
+<p>然后我们在tmux下启动：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">goaccess access.log -o &#x2F;var&#x2F;www&#x2F;report.html --real-time-html --time-format&#x3D;&#39;%H:%M:%S&#39; --date-format&#x3D;&#39;%d&#x2F;%b%Y&#39; --log-format&#x3D;COMBINED</span><br></pre></td></tr></table></figure>
+
+<p>这里定义了report.html为输出文件，real-time-html就是实时的意思，后面的就是格式化，这个命令得在access.log所在目录下执行</p>
+<h3 id="配置nginx"><a href="#配置nginx" class="headerlink" title="配置nginx"></a>配置nginx</h3><p>在对应的server块下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">location &#x2F;report.html &#123;</span><br><span class="line">    alias &#x2F;var&#x2F;www&#x2F;report.html;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看一下nginx进程</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ps -ef | grep nginx</span><br></pre></td></tr></table></figure>
+
+<p>配置好以后reload一下nginx服务：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">nginx -c &#x2F;app&#x2F;deploy&#x2F;nginx&#x2F;nginx.conf -s reload</span><br></pre></td></tr></table></figure>
+
+<p>然后看一下<a href="http://ip/report.html%EF%BC%8C%E5%B0%B1%E5%8F%AF%E4%BB%A5%E7%9C%8B%E8%A7%81%E6%88%91%E4%BB%AC%E7%9A%84goaccess%E7%95%8C%E9%9D%A2%E4%BA%86">http://ip/report.html，就可以看见我们的goaccess界面了</a></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>face-recognition模块初探</title>
+    <url>/2020/10/05/face-recognition%E6%A8%A1%E5%9D%97%E5%88%9D%E6%8E%A2/</url>
+    <content><![CDATA[<h2 id="face-recognition模块初探"><a href="#face-recognition模块初探" class="headerlink" title="face-recognition模块初探"></a>face-recognition模块初探</h2><p>因为要参加一个比赛，用到人脸识别，所以准备简单的学习一下，能够利用起来就好</p>
+<h3 id="从图片识别人脸"><a href="#从图片识别人脸" class="headerlink" title="从图片识别人脸"></a>从图片识别人脸</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">#读取图像信息</span><br><span class="line">image &#x3D; face_recognition.load_image_file(&quot;biden.jpg&quot;)</span><br><span class="line">#定位图片上的人脸</span><br><span class="line">#参数解析：img是加载的图片，number_of_times_to_upsample是处理图像的次数，数字越大识别人脸越少</span><br><span class="line">face_locations &#x3D; face_recognition.face_locations(image, number_of_times_to_upsample&#x3D;0, model&#x3D;&quot;cnn&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>上面的face_recognition.face_locations方法是返回一个list，里面储存着脸部的坐标信息：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">top, right, bottom, left &#x3D; face_location</span><br><span class="line">    print(&quot;A face is located at pixel location Top: &#123;&#125;, Left: &#123;&#125;, Bottom: &#123;&#125;, Right: &#123;&#125;&quot;.format(top, left, bottom, right))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们可以把这一块的人脸截取出来：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">face_image &#x3D; image[top:bottom, left:right]</span><br></pre></td></tr></table></figure>
+
+<p>然后可以利用PTL的Img模块打开这一块人脸信息：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pil_image &#x3D; Image.fromarray(face_image)</span><br><span class="line">pil_image.show()</span><br></pre></td></tr></table></figure>
+
+<h3 id="识别未知的人脸是否匹配已存在的图片中"><a href="#识别未知的人脸是否匹配已存在的图片中" class="headerlink" title="识别未知的人脸是否匹配已存在的图片中"></a>识别未知的人脸是否匹配已存在的图片中</h3><p>首先要加载图片：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">biden_image &#x3D; face_recognition.load_image_file(&quot;biden.jpg&quot;)#read the data from the image</span><br><span class="line">obama_image &#x3D; face_recognition.load_image_file(&quot;obama.jpg&quot;)</span><br><span class="line">#要匹配验证的图片</span><br><span class="line">unknown_image &#x3D; face_recognition.load_image_file(&quot;obama2.jpg&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>然后转换成128位字节放入数组中</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">try:</span><br><span class="line">    biden_face_encoding &#x3D; face_recognition.face_encodings(biden_image)[0]#transfform biden_image to a 128 bit data,and save it into an array</span><br><span class="line">    obama_face_encoding &#x3D; face_recognition.face_encodings(obama_image)[0]#</span><br><span class="line">    unknown_face_encoding &#x3D; face_recognition.face_encodings(unknown_image)[0]</span><br><span class="line">except IndexError:</span><br><span class="line">    print(&quot;I wasn&#39;t able to locate any faces in at least one of the images. Check the image files. Aborting...&quot;)</span><br><span class="line">    quit()</span><br></pre></td></tr></table></figure>
+
+<p>把已经识别的人脸放在数组中</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">known_faces &#x3D; [</span><br><span class="line">    biden_face_encoding,</span><br><span class="line">    obama_face_encoding</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>判断实验图片中的人是否匹配过（compare_faces）</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">results &#x3D; face_recognition.compare_faces(known_faces, unknown_face_encoding)</span><br></pre></td></tr></table></figure>
+
+<p>未完待续…</p>
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>人脸识别</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>nohup在后台跑脚本</title>
+    <url>/2020/10/05/nohup%E5%9C%A8%E5%90%8E%E5%8F%B0%E8%B7%91%E8%84%9A%E6%9C%AC/</url>
+    <content><![CDATA[<h2 id="nohup在后台跑脚本"><a href="#nohup在后台跑脚本" class="headerlink" title="nohup在后台跑脚本"></a>nohup在后台跑脚本</h2><p>输入命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">nohup python -u flush.py &gt; flush.log 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+
+<p>这样就可以把输出重定向到flush.log中</p>
+<p>然后运行以后可以查看一下运行的进程：</p>
+<p>当前终端才可以看见：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">jobs -l  </span><br></pre></td></tr></table></figure>
+
+<p>如果还一台电脑的话，jobs就不可以了，所以可以：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ps -aux|grep flush.py</span><br></pre></td></tr></table></figure>
+
+<p>这样可以查看所有跟flush.py有关的进程</p>
+<p>另外：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ps -aux|grep chat.js| grep -v grep</span><br></pre></td></tr></table></figure>
+
+<p>可以把grep的命令排除掉</p>
+<p>提取进程ID:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ps -aux|grep flush.py| grep -v grep | awk &#39;&#123;print $2&#125;&#39;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ubuntu上安装virtualenvwrapper</title>
+    <url>/2020/10/05/ubuntu%E4%B8%8A%E5%AE%89%E8%A3%85virtualenvwrapper/</url>
+    <content><![CDATA[<h2 id="ubuntu上安装virtualenvwrapper"><a href="#ubuntu上安装virtualenvwrapper" class="headerlink" title="ubuntu上安装virtualenvwrapper"></a>ubuntu上安装virtualenvwrapper</h2><ol>
+<li><pre><code>mkdir $HOME/.virtualenvs
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">   创建虚拟环境目录</span><br><span class="line"></span><br><span class="line">2. 添加环境变量信息</span><br><span class="line"></span><br><span class="line">   修改 ~&#x2F;.bashrc文件</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+# virtualenv-wrapper path
+export WORKON_HOME=$HOME/.virtualenvs
+export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
+export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
+source /usr/local/bin/virtualenvwrapper.sh
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">但是VIRTUALENVWRAPPER_VIRTUALENV和virtualenvwrapper.sh需要自己去找在哪里：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+sudo find / -name &quot;virtualenv&quot;
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">   然后把路径替换掉就可以了</span><br><span class="line"></span><br><span class="line">3. 重新加载环境变量</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+source ~/.bashrc
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">1. 创建虚拟环境</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+mkvirtualenv -p python3 test
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">1. 激活虚拟环境</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+workon test</code></pre>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>ubuntu</category>
+      </categories>
+      <tags>
+        <tag>ubuntu</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>一次DDL触发的问题</title>
+    <url>/2020/10/05/%E4%B8%80%E6%AC%A1DDL%E8%A7%A6%E5%8F%91%E7%9A%84%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p>今天在爬虫的时候，发现爬取一本书的章节内容股过大，TEXT放不下，所以想着去修改成MEDIUMTEXT，打开MysqlWorkBench进行修改，发现alter语句没有response，并且出现lost connection，并且爬虫的数据库连接也丢失。</p>
+<p><img src="https://i.loli.net/2020/06/24/aBdexgEn2LAJPzN.png" alt="屏幕快照 2020-06-24 下午1.43.38.png"></p>
+<h3 id="排查问题"><a href="#排查问题" class="headerlink" title="排查问题"></a>排查问题</h3><p>丢失连接一定是超时了，并且修改字段类型是一个DDL操作，一定是占着锁不释放，其他的DML操作无法执行，长事务超时后断开了。</p>
+<p>所以先看看数据大小。</p>
+<p><img src="https://i.loli.net/2020/06/24/bTIulxRziF3ArM7.png" alt="屏幕快照 2020-06-24 下午2.06.20.png"></p>
+<p>最后一个4.6G的就是我要修改的表，还真是有点大。</p>
+<p>所以先了解一下Mysql的DDL机制</p>
+<h3 id="Onilne-DDL"><a href="#Onilne-DDL" class="headerlink" title="Onilne DDL"></a>Onilne DDL</h3><p>对表的物理结构操作，alter、drop这样的。在mysql5.5之前，所有的DDL需要Copy数据：</p>
+<ol>
+<li>按照原始表的定义，重新定义一个空的临时表。</li>
+<li>对临时表进行添加索引。</li>
+<li>再将原始表中的数据逐条Copy到临时表中。</li>
+<li>当原始表中的所有记录都被Copy临时表后，将原始表进行删除。</li>
+<li>再将临时表命名为原始表表名。</li>
+</ol>
+<p>5.5之后支持了Online DDL使得一些DDL操作可以不阻塞，像添加或删除一个<strong>二级索引</strong>（注意是二级索引），不需要创建临时表：</p>
+<ol>
+<li>发起删除索引操作。</li>
+<li>通知InnoDB系统表和MySQL数据字典表，该索引已标识为失效状态。</li>
+<li>InnoDB将索引所占空间回收至表空间中，以便后续索引，表记录使用。</li>
+</ol>
+<h4 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> t_base_user <span class="keyword">modify</span> telephone <span class="built_in">varchar</span>(<span class="number">50</span>),<span class="keyword">lock</span>=<span class="keyword">none</span> ;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>LOCK=EXCLUSIVE : 表示独占锁，DDL语句执行期间会阻塞该表的所有请求。</li>
+<li>LOCK=SHARED：共享锁，DDL语句执行期间会阻塞除查询外的所有DML操作，如: insert，update等。</li>
+<li>LOCK=NONE: 允许所有查询以及DML操作。</li>
+<li>LOCK=DEFAULT 默认级别，MySQL尽可能允许最大的并发操作。</li>
+</ol>
+<h4 id="rows-affected"><a href="#rows-affected" class="headerlink" title="rows affected"></a>rows affected</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql&gt; alter table t_base_user modify telephone varchar(50),lock=none ;</span><br><span class="line">Query OK, 0 rows affected (0.03 sec)</span><br><span class="line">Records: 0  Duplicates: 0  Warnings: 0</span><br></pre></td></tr></table></figure>
+
+<p>如果为0表示没有进行表复制</p>
+<h3 id="低成本Online-DDL操作"><a href="#低成本Online-DDL操作" class="headerlink" title="低成本Online DDL操作"></a>低成本Online DDL操作</h3><p>下面是常用操作不会锁住表(成本低)的操作：（均为二级索引）</p>
+<p><img src="https://pic3.zhimg.com/80/v2-742a5dda0405c045ca72d5d0a3a06d86_1440w.jpg"></p>
+<h3 id="高成本-Online-DDL操作"><a href="#高成本-Online-DDL操作" class="headerlink" title="高成本 Online DDL操作"></a>高成本 Online DDL操作</h3><p>下面这些操作，由于数据会重组，即使是Online DDL操作，其操作也非常昂贵，不建议在生产环境高峰时直接操作。否则会造成大量的等待操作。</p>
+<p><img src="https://pic3.zhimg.com/80/v2-12c7c3e1bd8009048a0239ed52c5fe52_1440w.jpg"></p>
+<h3 id="Online-DDL注意点"><a href="#Online-DDL注意点" class="headerlink" title="Online DDL注意点"></a>Online DDL注意点</h3><p>在使用Online DDL操作时，有很多的注意事项，这里给出几个比较常见的注意点：</p>
+<ol>
+<li>如果是主从复制模式，主服务器执行Online DDL会停止从库的复制操作，并一直等待主库的DDL操作后，采会恢复复制操作，也就是说从库会有延迟现象产生。</li>
+<li>Online DDL操作不可中断，或者显示Online DDL操作的CPU/IO操作占用率。</li>
+<li>MySQL5.6之前的版本，执行Online DDL操作会报语法错误，例如:</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> t_base_user <span class="keyword">modify</span> telephone <span class="built_in">varchar</span>(<span class="number">50</span>) <span class="literal">null</span> <span class="keyword">comment</span> <span class="string">&quot;&quot;</span>,<span class="keyword">lock</span>=<span class="keyword">none</span>;  </span><br></pre></td></tr></table></figure>
+
+<p>该语句在MySQL5.6及以后的版本中，能正常执行，在5.6版本之前，则直接报语法错误。在执行前，一定要检查自己的MySQL版本。</p>
+]]></content>
+      <categories>
+        <category>数据库</category>
+      </categories>
+      <tags>
+        <tag>实习</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>安装MongoDB流程及问题</title>
+    <url>/2020/10/05/%E5%AE%89%E8%A3%85MongoDB%E6%B5%81%E7%A8%8B%E5%8F%8A%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<h2 id="安装MongoDB"><a href="#安装MongoDB" class="headerlink" title="安装MongoDB"></a>安装MongoDB</h2><ol>
+<li><p>下载地址：<a href="http://www.mongodb.org/downloads">http://www.mongodb.org/downloads</a></p>
+</li>
+<li><p>解压缩到自己想要安装的目录，比如d:\mongodb</p>
+</li>
+<li><p>创建文件夹d:\mongodb\data\db、d:\mongodb\data\log，分别用来安装db和日志文件，在log文件夹下创建一个日志文件MongoDB.log，即d:\mongodb\data\log\MongoDB.log</p>
+</li>
+<li><p>运行cmd.exe进入dos命令界面，执行下列命令</p>
+</li>
+<li><p>测试链接：输入mongo，然后打开<a href="http://127.0.0.1:27017/%EF%BC%8C%E4%BC%9A%E6%98%BE%E7%A4%BA">http://127.0.0.1:27017/，会显示</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">It looks like you are trying to access MongoDB over HTTP on the native driver port</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当mongod.exe被关闭时，mongo.exe 就无法连接到数据库了，因此每次想使用mongodb数据库都要开启mongod.exe程序，所以比较麻烦，此时我们可以将MongoDB安装为windows服务还是运行cmd，进入bin文件夹，执行下列命令</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; d:\mongodb\bin&gt;mongod --dbpath &quot;d:\mongodb\data\db&quot; --logpath &quot;d:\mongodb\data\log\MongoDB.log&quot; --install --serviceName &quot;MongoDB&quot;</span><br></pre></td></tr></table></figure>
+
+<p>　这里MongoDB.log就是开始建立的日志文件，–serviceName “MongoDB” 服务名为MongoDB</p>
+<p>　接着启动mongodb服务：net start MongoDB（对了，注意一定要在管理员的权限下启动终端）</p>
+</li>
+</ol>
+<p>等一次配置好了以后就可以直接进入管理员的终端net start了，关闭是net stop</p>
+<h2 id="安装出现的问题"><a href="#安装出现的问题" class="headerlink" title="安装出现的问题"></a>安装出现的问题</h2><ol>
+<li><p>MongDB–问题解决之服务没有响应控制功能      这个一般都是路径的问题，我们可以先删除服务：</p>
+<p>sc delete MongoDB</p>
+<p>然后重新安装服务</p>
+</li>
+<li><p>特定服务错误代码100    这个我们可以找到我们的data文件夹，下面会有一个mongod.lock文件，只要删掉就可以了</p>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>数据库</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
+        <tag>MongoDB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>开发中遇到的一个上下文问题</title>
+    <url>/2020/10/05/%E5%BC%80%E5%8F%91%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E4%B8%80%E4%B8%AA%E4%B8%8A%E4%B8%8B%E6%96%87%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p>今天在Mongo项目中用SQLAlchemy+mysql的实现过程中出现了一个问题：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Traceback (most recent call last):</span><br><span class="line">  File &quot;run.py&quot;, line 3, in &lt;module&gt;</span><br><span class="line">    main_app&#x3D;create_app()</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\MonGo\app\__init__.py&quot;, line 25, in create_app</span><br><span class="line">    from app.errors import errors_bp as errors_bp</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\MonGo\app\errors\__init__.py&quot;, line 3, in &lt;module&gt;</span><br><span class="line">    from app.errors import handlers</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\MonGo\app\errors\handlers.py&quot;, line 4, in &lt;module&gt;</span><br><span class="line">    hander_app&#x3D;create_app()</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\MonGo\app\__init__.py&quot;, line 29, in create_app</span><br><span class="line">    from app.auth import views</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\MonGo\app\auth\views.py&quot;, line 5, in &lt;module&gt;</span><br><span class="line">    from .forms import LoginForm,RegistrationForm,EditProfileForm,PostForm</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\MonGo\app\auth\forms.py&quot;, line 4, in &lt;module&gt;</span><br><span class="line">    from ..models import User</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\MonGo\app\models.py&quot;, line 86, in &lt;module&gt;</span><br><span class="line">    db.create_all()</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\lib\site-packages\flask_sqlalchemy\__init__.py&quot;, line 964, in create_all</span><br><span class="line">    self._execute_for_all_tables(app, bind, &#39;create_all&#39;)</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\lib\site-packages\flask_sqlalchemy\__init__.py&quot;, line 941, in _execute_for_all_tables</span><br><span class="line">    app &#x3D; self.get_app(app)</span><br><span class="line">  File &quot;D:\python\virtual_work\Mongo\lib\site-packages\flask_sqlalchemy\__init__.py&quot;, line 913, in get_app</span><br><span class="line">    &#39;No application found. Either work inside a view function or push&#39;</span><br><span class="line">RuntimeError: No application found. Either work inside a view function or push an application context. See http:&#x2F;&#x2F;flask-sqlalchemy.pocoo.org&#x2F;contexts&#x2F;.</span><br></pre></td></tr></table></figure>
+
+<p>简单看一下，这个问题，我们执行到db_createall(的时候，需要执行一个self.get_app(app)，这里明显是需要一个app上下文来运行，但是这时候我们的请求还没有进来，app_context()还没有app对象，所以这里我们需要先进行一个进栈操作：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">app.app_context().push()</span><br></pre></td></tr></table></figure>
+
+<p>这样就行了</p>
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>Flask</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>强大的NoSQL</title>
+    <url>/2020/10/05/%E5%BC%BA%E5%A4%A7%E7%9A%84NoSQL/</url>
+    <content><![CDATA[<h2 id="强大的NoSQL"><a href="#强大的NoSQL" class="headerlink" title="强大的NoSQL"></a>强大的NoSQL</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>NoSQL，速度超越其他的数据库一大截，即使它不需要做什么调优工作，但是同时这样的速度是付出很多的，很多NoSQL数据库为了速度而牺牲了一致性。就是很多的NoSQL数据库会不遵循ACID事务，导致数据库事务的四大特性被破坏，在很多比如高并发读取同一数据或者更坏的情况就像服务器宕机、断电等情况，都会发生很多不利于数据库安全的因素。</p>
+<p>NoSQL的第二个特性就是它处理无数据结构的能力，可以把数据存在XML或者JSON文件中，使得每个文档都可以有任意结构。这个特性对于那些需要自定义格式的数据应用是受益匪浅的。就像游戏玩家可以把一个视频方成可查询格式放在中央服务器中，而不是仅仅保存为一个二进制文件</p>
+<p>NoSQL的第三个特性，是他可以轻松的搭建协同工作的数据库集。这其实归功于NoSQL没有join操作，这也是区别于它和关系型数据库的重要标志。join操作是需要整个表的数据的，甚至关系到多个表，但是NoSQL可以在不同的数据库中保存不同表，就像是MongoDB可以在不同的服务器上搭建同一集群，这也是开发者的方便啊~</p>
+<h3 id="一对多的关系"><a href="#一对多的关系" class="headerlink" title="一对多的关系"></a>一对多的关系</h3><ul>
+<li><p>方式一，通过ReferenceField字段</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Post(mongo.Document):</span><br><span class="line">    title&#x3D;StringField(request&#x3D;True)</span><br><span class="line">    text&#x3D;StringField()</span><br><span class="line">    publish_date&#x3D;DateTimeField(</span><br><span class="line">        default&#x3D;datetime.now()</span><br><span class="line">    )</span><br><span class="line">    user&#x3D;ReferenceField(User)</span><br><span class="line">    def __repr__(self):</span><br><span class="line">        return &quot;&lt;Post   &#39;&#123;&#125;&#39;&gt;&quot;.format(self.title)</span><br></pre></td></tr></table></figure>
+
+<p>给post增加一个user字段，连接User类，然后我们可以这样来给他们创建关系：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; user&#x3D;User(nickname&#x3D;&quot;Mason&quot;)</span><br><span class="line">&gt;&gt;&gt; user.save()</span><br><span class="line">&lt;User   &#39;Mason&#39;&gt;</span><br><span class="line">&gt;&gt;&gt; user</span><br><span class="line">&lt;User   &#39;Mason&#39;&gt;</span><br><span class="line">&gt;&gt;&gt; post&#x3D;Post.objects.first()</span><br><span class="line">&gt;&gt;&gt; post</span><br><span class="line">&lt;Post   &#39;name1&#39;&gt;</span><br><span class="line">&gt;&gt;&gt; post.user&#x3D;user</span><br><span class="line">&gt;&gt;&gt; post.save()</span><br><span class="line">&lt;Post   &#39;name1&#39;&gt;</span><br><span class="line">&gt;&gt;&gt; post.user</span><br><span class="line">&lt;User   &#39;Mason&#39;&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li>方式二，利用EmbeddedDocumentField字段</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Post(mongo.Document):</span><br><span class="line">    title&#x3D;StringField(request&#x3D;True)</span><br><span class="line">    text&#x3D;StringField()</span><br><span class="line">    publish_date&#x3D;DateTimeField(</span><br><span class="line">        default&#x3D;datetime.now()</span><br><span class="line">    )</span><br><span class="line">    user&#x3D;ReferenceField(User)</span><br><span class="line">    comment&#x3D;ListField(</span><br><span class="line">        EmbeddedDocumentField(Comment)</span><br><span class="line">    )</span><br><span class="line">    def __repr__(self):</span><br><span class="line">        return &quot;&lt;Post   &#39;&#123;&#125;&#39;&gt;&quot;.format(self.title)</span><br><span class="line">class Comment(mongo.EmbeddedDocument):</span><br><span class="line">    name&#x3D;StringField(requied&#x3D;True)</span><br><span class="line">    text&#x3D;StringField(requied&#x3D;True)</span><br><span class="line">    date&#x3D;DateTimeField(</span><br><span class="line">        default&#x3D;datetime.now()</span><br><span class="line">    )</span><br><span class="line">    def __repr__(self):</span><br><span class="line">        return &quot;&lt;Comment   &#39;&#123;&#125;&#39;&gt;&quot;.format(self.name)</span><br></pre></td></tr></table></figure>
+
+<p>这样Post的comment就是一个List了我们可以这样来添加Post的comment:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; comment&#x3D;Comment(name&#x3D;&quot;Jack&quot;,text&#x3D;&quot;I really like this post&quot;)</span><br><span class="line">&gt;&gt;&gt; post.comments.append(comment)</span><br><span class="line">&gt;&gt;&gt; post.comment.append(comment)</span><br><span class="line">&gt;&gt;&gt; post.save()</span><br><span class="line">&lt;Post   &#39;name1&#39;&gt;</span><br><span class="line">&gt;&gt;&gt; post.comment</span><br><span class="line">[&lt;Comment   &#39;Jack&#39;&gt;]</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="多对多"><a href="#多对多" class="headerlink" title="多对多"></a>多对多</h3><p>在文档数据库中没有这一层关系，因为其实我们有了ListField，就可以在每个列别对应许多的数据，就比如Post有一个字段：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">tags&#x3D;mongo.ListField(mongo.StringField())</span><br></pre></td></tr></table></figure>
+
+<p>我们就可以这样获取有Python标签的Post</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Post.objects(tags__in&#x3D;&quot;Python&quot;).all()</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>数据库</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数据库关系模式</title>
+    <url>/2020/10/05/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%85%B3%E7%B3%BB%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<h2 id="数据库关系模式"><a href="#数据库关系模式" class="headerlink" title="数据库关系模式"></a>数据库关系模式</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>终于完成了设计大赛的项目工作，又可以开心的学习Web了（5月13日更）</p>
+<p>本章使用ORM是SQLAlchemy</p>
+<h3 id="一对多"><a href="#一对多" class="headerlink" title="一对多"></a>一对多</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from app import db</span><br><span class="line">class Artical(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    title&#x3D;db.Column(db.String(140))</span><br><span class="line">    comments&#x3D;db.relationship(&quot;Comment&quot;)</span><br><span class="line">class Comment(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    body&#x3D;db.Column(db.String(240))</span><br><span class="line">    artical_id&#x3D;db.Column(db.Integer,db.ForeignKey(&quot;artical.id&quot;))</span><br></pre></td></tr></table></figure>
+
+<p>在“一”的一侧(Artical)定义一个关系，和“多”的一侧(Comment)绑定，然后再“多”的一侧定义外键，第一个参数是对应的数据表名（小写）的字段(artical.id)</p>
+<p>调试：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">flask shell</span><br><span class="line">Python 3.7.2 (tags&#x2F;v3.7.2:9a3ffc0492, Dec 23 2018, 23:09:28) [MSC v.1916 64 bit (AMD64)] on win32</span><br><span class="line">App: app [production]</span><br><span class="line">Instance: D:\python\数据库关系\instance</span><br><span class="line">&gt;&gt;&gt; from app import db</span><br><span class="line">&gt;&gt;&gt; db.create_all()</span><br><span class="line">&gt;&gt;&gt; from app.models import Artical,Comment</span><br><span class="line">&gt;&gt;&gt; a1&#x3D;Artical()</span><br><span class="line">&gt;&gt;&gt; a1.title&#x3D;&quot;first artical&quot;</span><br><span class="line">&gt;&gt;&gt; c1&#x3D;Comment()</span><br><span class="line">&gt;&gt;&gt; c1.body&#x3D;&quot;first comment&quot;</span><br><span class="line">&gt;&gt;&gt; c2&#x3D;Comment()</span><br><span class="line">&gt;&gt;&gt; c2.body&#x3D;&quot;second comment&quot;</span><br><span class="line">&gt;&gt;&gt; a1.comments.append(c1)</span><br><span class="line">&gt;&gt;&gt; a1.comments.append(c2)</span><br><span class="line">&gt;&gt;&gt; db.session.add(a1)</span><br><span class="line">&gt;&gt;&gt; db.session.add(c1)</span><br><span class="line">&gt;&gt;&gt; db.session.add(c2)</span><br><span class="line">&gt;&gt;&gt; db.session.commit()</span><br><span class="line">&gt;&gt;&gt; a&#x3D;Artical.query.get(1)</span><br><span class="line">&gt;&gt;&gt; a.comments</span><br><span class="line">[&lt;Comment 1&gt;, &lt;Comment 2&gt;]</span><br></pre></td></tr></table></figure>
+
+<h3 id="建立双向关系"><a href="#建立双向关系" class="headerlink" title="建立双向关系"></a>建立双向关系</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from app import db</span><br><span class="line">class Artical(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    title&#x3D;db.Column(db.String(140))</span><br><span class="line">    comments&#x3D;db.relationship(&quot;Comment&quot;,back_populates&#x3D;&quot;artical&quot;)</span><br><span class="line">class Comment(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    body&#x3D;db.Column(db.String(240))</span><br><span class="line">    artical_id&#x3D;db.Column(db.Integer,db.ForeignKey(&quot;artical.id&quot;))</span><br><span class="line">    artical&#x3D;db.relationship(&quot;Artical&quot;,back_populates&#x3D;&quot;comments&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>利用back_populates属性“显示”建立双向关系，这样就可以了：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; c&#x3D;Comment.query.get(1)</span><br><span class="line">&gt;&gt;&gt; c.artical</span><br><span class="line">&lt;Artical 1&gt;</span><br></pre></td></tr></table></figure>
+
+<p>或者使用backref简化点：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from app import db</span><br><span class="line">class Artical(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    title&#x3D;db.Column(db.String(140))</span><br><span class="line">    comments&#x3D;db.relationship(&quot;Comment&quot;,backref&#x3D;&quot;artical&quot;)</span><br><span class="line">class Comment(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    body&#x3D;db.Column(db.String(240))</span><br><span class="line">    artical_id&#x3D;db.Column(db.Integer,db.ForeignKey(&quot;artical.id&quot;))</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h3 id="多对一"><a href="#多对一" class="headerlink" title="多对一"></a>多对一</h3><p>多对一的关系其实就是一对多的关系反向，其实就是看的角度不同。需要注意的是，这时候我们需要将外键和关系属性都放在“多”这一侧</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Cityzen(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    name&#x3D;db.Column(db.String(120))</span><br><span class="line">    city_id&#x3D;db.Column(db.Integer,db.ForeignKey(&quot;city.id&quot;))</span><br><span class="line">    city&#x3D;db.relationship(&quot;City&quot;)</span><br><span class="line">class City(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    name&#x3D;db.Column(db.String(200))</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="一对一"><a href="#一对一" class="headerlink" title="一对一"></a>一对一</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Country(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    name&#x3D;db.Column(db.String(200),unique&#x3D;True)</span><br><span class="line">    capital&#x3D;db.relationship(&#39;Capital&#39;,uselist&#x3D;False)</span><br><span class="line">class Capital(db.Model):</span><br><span class="line">    id&#x3D;db.Column(db.Integer,primary_key&#x3D;True)</span><br><span class="line">    name&#x3D;db.Column(db.String(200),unique&#x3D;True)</span><br><span class="line">    country_id&#x3D;db.Column(db.Integer,db.ForeignKey(&#39;country.id&#39;))</span><br><span class="line">    country&#x3D;db.relationship(&#39;Country&#39;)</span><br></pre></td></tr></table></figure>
+
+<p>在Country和Capital两侧都指定标量capital和country，其实和一对多相似，最重要的就是需要把capital的uselist编程False，这样就表示一个country只可以有一个capital</p>
+<h3 id="多对多"><a href="#多对多" class="headerlink" title="多对多"></a>多对多</h3><p>多对多我们就需要一个公用的表格，就像：</p>
+<table>
+<thead>
+<tr>
+<th>follower_id</th>
+<th>followed_id</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>2</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2</td>
+</tr>
+<tr>
+<td>2</td>
+<td>3</td>
+</tr>
+<tr>
+<td>1</td>
+<td>4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<p>上面的followed_id表示被关注，follower_id表示粉丝，上面的3号关注了2号跟1号</p>
+<p>我们可以这样表示这个表：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">followers &#x3D; db.Table(&#39;followers&#39;,</span><br><span class="line">    db.Column(&#39;follower_id&#39;, db.Integer, db.ForeignKey(&#39;user.id&#39;)),</span><br><span class="line">    db.Column(&#39;followed_id&#39;, db.Integer, db.ForeignKey(&#39;user.id&#39;))</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<p>然后我们定义User:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class User(db.Model):</span><br><span class="line">    __tablename__&#x3D;&#39;user&#39;</span><br><span class="line">    ......</span><br><span class="line">    followed &#x3D; db.relationship(</span><br><span class="line">        &#39;User&#39;, secondary&#x3D;followers,</span><br><span class="line">        primaryjoin&#x3D;(followers.c.follower_id &#x3D;&#x3D; id),</span><br><span class="line">        secondaryjoin&#x3D;(followers.c.followed_id &#x3D;&#x3D; id),</span><br><span class="line">        backref&#x3D;db.backref(&#39;followers&#39;, lazy&#x3D;&#39;dynamic&#39;), lazy&#x3D;&#39;dynamic&#39;)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>secondary</code> 指定了用于该关系的关联表，就是使用我在上面定义的`followers</li>
+<li><code>primaryjoin</code> 指明了通过关系表关联到左侧实体（关注者）的条件 。关系中的左侧的join条件是关系表中的<code>follower_id</code>字段与这个关注者的用户ID匹配。<code>followers.c.follower_id</code>表达式引用了该关系表中的<code>follower_id</code>列。</li>
+<li><code>secondaryjoin</code> 指明了通过关系表关联到右侧实体（被关注者）的条件 。 这个条件与<code>primaryjoin</code>类似，唯一的区别在于，现在我使用关系表的字段的是<code>followed_id</code>了。</li>
+<li><code>backref</code>定义了右侧实体如何访问该关系。在左侧，关系被命名为<code>followed</code>，所以在右侧我将使用<code>followers</code>来表示所有左侧用户的列表，(user.fllowers)即粉丝列表。附加的<code>lazy</code>参数表示这个查询的执行模式，设置为动态模式的查询不会立即执行，直到被调用.</li>
+<li><code>lazy</code>和<code>backref</code>中的<code>lazy</code>类似，只不过当前的这个是应用于左侧实体，<code>backref</code>中的是应用于右侧实体。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>浅析web服务器，WSGI，web框架之间的联系</title>
+    <url>/2020/10/05/%E6%B5%85%E6%9E%90web%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%8CWSGI%EF%BC%8Cweb%E6%A1%86%E6%9E%B6%E4%B9%8B%E9%97%B4%E7%9A%84%E8%81%94%E7%B3%BB/</url>
+    <content><![CDATA[<h2 id="浅析web服务器，WSGI，web框架之间的联系"><a href="#浅析web服务器，WSGI，web框架之间的联系" class="headerlink" title="浅析web服务器，WSGI，web框架之间的联系"></a>浅析web服务器，WSGI，web框架之间的联系</h2><p><img src="D:\MyBlog\image\006tKfTcgy1fcyw0ay5l0j306c0fs74k.jpg"></p>
+<p>这三者的关系就是如上图所示</p>
+<p>我们从网页发送请求到收到返回的数据的过程是经过下面的步骤：</p>
+<ol>
+<li><p>浏览器通过url定位服务器，向服务器发送数据，服务器的作用就是</p>
+<ul>
+<li>接受请求</li>
+<li>处理请求</li>
+<li>返回请求</li>
+</ul>
+<p>Nginx就是一个静态服务器，其实所有的服务器本质上都是一个静态服务器，只不过因为后面我们的web应用程序才让他可以动态响应</p>
+</li>
+<li><p>服务器接收到请求以后通过WSGI接口，它会处理服务器传过来的信息重写环境变量，然后根据目标url解释给应用程序（比如我们的Flask）,总的来说它主要做两件事：</p>
+<ul>
+<li>让Web服务器知道如何调用Python应用程序，并且把用户的请求告诉应用程序。</li>
+<li>让Python应用程序知道用户的具体请求是什么，以及如何返回结果给Web服务器。</li>
+</ul>
+</li>
+<li><p>我们的应用程序终于收到了规格化后的请求，这样我们的Flask可以看的懂了，我们就可以根据路由来动态返回信息了，然后原路返回，告诉给我们的浏览器</p>
+</li>
+</ol>
+<p>PS</p>
+<p>最后还有一个uWSGI，它就是一个带有wsgi协议的服务器，可以代替我们的Nginx，属于服务层</p>
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>web开发</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>深入浅出Flask-cache（一）</title>
+    <url>/2020/10/05/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAFlask-cache%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="深入浅出Flask-cache（一）"><a href="#深入浅出Flask-cache（一）" class="headerlink" title="深入浅出Flask-cache（一）"></a>深入浅出Flask-cache（一）</h2><h3 id="为什么使用缓存"><a href="#为什么使用缓存" class="headerlink" title="为什么使用缓存"></a>为什么使用缓存</h3><p>当一个资源需要从服务器中获取，并且资源比较庞大，服务器可能处理起来比较慢，并且此功能为热门功能，可能用户需要经常访问获取。此时，服务器就可以考虑缓存技术。缓存就是数据交换的缓冲区（称作Cache），当某一硬件要读取数据时，会首先从缓存中查找需要的数据，如果找到了则直接执行，找不到的话则从内存中找。由于缓存的运行速度比内存快得多，故缓存的作用就是帮助硬件更快地运行。</p>
+<p>就像我正在开发的Mongo项目，每次用户请求页面时都要去查询数据库渲染模板，这就是很耗费效率的事，如果我们可以将一些数据暂时放在缓存区，那么我们就可以快速地拿到我们的数据了</p>
+<h3 id="如何在Flask中使用缓存"><a href="#如何在Flask中使用缓存" class="headerlink" title="如何在Flask中使用缓存"></a>如何在Flask中使用缓存</h3><p>这就需要我们今天的主角：Flask-Cache</p>
+<p>首先安装</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install Flask-Cache</span><br></pre></td></tr></table></figure>
+
+<p>然后绑定app</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> flask_cache <span class="keyword">import</span> Cache</span><br><span class="line">app=Flask(__name__)</span><br><span class="line">cache=Cache(config=&#123;</span><br><span class="line">    <span class="string">&#x27;CACHE_TYPE&#x27;</span>:<span class="string">&#x27;simple&#x27;</span></span><br><span class="line">&#125;)</span><br><span class="line">cache.init_app(app)</span><br></pre></td></tr></table></figure>
+
+<p>这样我们就可以根据需求对目标数据进行缓存</p>
+<h4 id="cache-cached"><a href="#cache-cached" class="headerlink" title="@cache.cached"></a>@cache.cached</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@auth_bp.route(&#x27;/&#x27;,methods=[&#x27;GET&#x27;,&#x27;POST&#x27;])</span></span><br><span class="line"><span class="meta">@auth_bp.route(&#x27;/index&#x27;,methods=[&#x27;GET&#x27;,&#x27;POST&#x27;])</span></span><br><span class="line"><span class="meta">@login_required</span></span><br><span class="line"><span class="meta">@cache.cached(timeout=60)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span>():</span></span><br><span class="line">   .....</span><br><span class="line">    <span class="keyword">return</span> render_template(<span class="string">&quot;index.html&quot;</span>,title=<span class="string">&quot;Home Page&quot;</span>,</span><br><span class="line">                posts=posts.items,form=form,next_url=next_url,</span><br><span class="line">                        prev_url=prev_url)</span><br></pre></td></tr></table></figure>
+
+<p>这里将模板函数进行缓存，使用了cached方法，这个方法在源码中(/flask-cache/<em>init</em>.py):</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cached</span>(<span class="params">self, timeout=None, key_prefix=<span class="string">&#x27;view/%s&#x27;</span>, unless=None</span>):</span></span><br><span class="line">        <span class="function"><span class="keyword">def</span> <span class="title">decorator</span>(<span class="params">f</span>):</span></span><br><span class="line"><span class="meta">            @functools.wraps(f)</span></span><br><span class="line">            <span class="function"><span class="keyword">def</span> <span class="title">decorated_function</span>(<span class="params">*args, **kwargs</span>):</span></span><br><span class="line">                <span class="comment">#: Bypass the cache entirely.</span></span><br><span class="line">                <span class="keyword">if</span> callable(unless) <span class="keyword">and</span> unless() <span class="keyword">is</span> <span class="literal">True</span>:<span class="comment">#&lt;1&gt;</span></span><br><span class="line">                    <span class="keyword">return</span> f(*args, **kwargs)</span><br><span class="line"></span><br><span class="line">                <span class="keyword">try</span>:</span><br><span class="line">                    cache_key = decorated_function.make_cache_key(*args, **kwargs)<span class="comment">#&lt;2&gt;</span></span><br><span class="line">                    rv = self.cache.get(cache_key)</span><br><span class="line">                <span class="keyword">except</span> Exception:</span><br><span class="line">                    <span class="keyword">if</span> current_app.debug:</span><br><span class="line">                        <span class="keyword">raise</span></span><br><span class="line">                    logger.exception(<span class="string">&quot;Exception possibly due to cache backend.&quot;</span>)</span><br><span class="line">                    <span class="keyword">return</span> f(*args, **kwargs)</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> rv <span class="keyword">is</span> <span class="literal">None</span>:<span class="comment">#&lt;3&gt;</span></span><br><span class="line">                    rv = f(*args, **kwargs)</span><br><span class="line">                    <span class="keyword">try</span>:</span><br><span class="line">                        self.cache.set(cache_key, rv,</span><br><span class="line">                                   timeout=decorated_function.cache_timeout)<span class="comment">#&lt;4&gt;</span></span><br><span class="line">                    <span class="keyword">except</span> Exception:</span><br><span class="line">                        <span class="keyword">if</span> current_app.debug:</span><br><span class="line">                            <span class="keyword">raise</span></span><br><span class="line">                        logger.exception(<span class="string">&quot;Exception possibly due to cache backend.&quot;</span>)</span><br><span class="line">                        <span class="keyword">return</span> f(*args, **kwargs)</span><br><span class="line">                <span class="keyword">return</span> rv</span><br><span class="line"></span><br><span class="line">            <span class="function"><span class="keyword">def</span> <span class="title">make_cache_key</span>(<span class="params">*args, **kwargs</span>):</span><span class="comment">#&lt;5&gt;</span></span><br><span class="line">                <span class="keyword">if</span> callable(key_prefix):<span class="comment">#&lt;6&gt;</span></span><br><span class="line">                    cache_key = key_prefix()</span><br><span class="line">                <span class="keyword">elif</span> <span class="string">&#x27;%s&#x27;</span> <span class="keyword">in</span> key_prefix:<span class="comment">#&lt;7&gt;</span></span><br><span class="line">                    cache_key = key_prefix % request.path</span><br><span class="line">                <span class="keyword">else</span>:<span class="comment">#&lt;8&gt;</span></span><br><span class="line">                    cache_key = key_prefix</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> cache_key</span><br><span class="line"></span><br><span class="line">            decorated_function.uncached = f</span><br><span class="line">            decorated_function.cache_timeout = timeout<span class="comment">#&lt;8&gt;</span></span><br><span class="line">            decorated_function.make_cache_key = make_cache_key</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> decorated_function</span><br><span class="line">        <span class="keyword">return</span> decorator</span><br></pre></td></tr></table></figure>
+
+<p>按照序号解释一下源码的关键部分：</p>
+<ul>
+<li>#&lt;1&gt;  如果unless参数不为空，此时编程回调功能，执行回调函数unless()后，直接返回当前计算的值</li>
+<li>#&lt;2&gt;  位cache生成key</li>
+<li>#&lt;3&gt;  如果cache没有命中</li>
+<li>#&lt;4&gt;  计算当前的值，作为缓存值储存，这个set方法是在werkzeug/contrib/cache.py中的方法：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">set</span>(<span class="params">self, key, value, timeout=None</span>):</span></span><br><span class="line">       expires = self._normalize_timeout(timeout)</span><br><span class="line">       self._prune()</span><br><span class="line">       self._cache[key] = (expires, pickle.dumps(value,</span><br><span class="line">                                                 pickle.HIGHEST_PROTOCOL))</span><br><span class="line">       <span class="keyword">return</span> <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>#&lt;5&gt;  生成函数需要的键</li>
+<li>#&lt;6&gt;  第一种key，是由key_prefix函数的返回值决定 </li>
+<li>#&lt;7&gt;  第二种key，默认方式，是由”view/”为前缀+request.path构成 </li>
+<li>#&lt;8&gt;  第三种key,直接由key_prefix构成 </li>
+</ul>
+<h4 id="cache-memoize"><a href="#cache-memoize" class="headerlink" title="@cache.memoize()"></a>@cache.memoize()</h4><p>用于缓存带有参数的函数，所以如果没有参数的话，其实跟cached一样</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@cache.memoize(timeout=30)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sum_data</span>(<span class="params">a,b</span>):</span></span><br><span class="line">    <span class="keyword">return</span> int(a) + int(b)</span><br></pre></td></tr></table></figure>
+
+<h3 id="清除缓存"><a href="#清除缓存" class="headerlink" title="清除缓存"></a>清除缓存</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> manager <span class="keyword">import</span> app,cache</span><br><span class="line"><span class="keyword">with</span> app.app_context():</span><br><span class="line">    cache.clear()</span><br></pre></td></tr></table></figure>
+
+<h4 id="PS"><a href="#PS" class="headerlink" title="PS"></a>PS</h4><p>缓存超期时间：</p>
+<p>例如：点击一个商品，先加入缓存，若这个商品在1个小时过去后，没在点击，便从缓存中删除，过期。对于热点数据，点击频繁，在缓存中的存活率较高，所以增大从缓存中取出增的命中率。对于冷门数据，自然就不用管，1小时后便自动消失。</p>
+]]></content>
+      <categories>
+        <category>Web开发</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Flask</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记录一次SSH连接失败问题</title>
+    <url>/2020/10/05/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1SSH%E8%BF%9E%E6%8E%A5%E5%A4%B1%E8%B4%A5%E9%97%AE%E9%A2%98(1)/</url>
+    <content><![CDATA[<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>服务器免密无法登录</p>
+<h3 id="经过"><a href="#经过" class="headerlink" title="经过"></a>经过</h3><p>一开始就是按照常规流程走：</p>
+<ol>
+<li><pre><code>ssh-copy-id -i .ssh/id_rsa.pub username@ip
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">   将本地的ssh公钥放置到服务器的authorized_keys中去</span><br><span class="line"></span><br><span class="line">2. 然后查看一下ssh的配置文件&#x2F;etc&#x2F;ssh&#x2F;sshd_config，保证至少：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+RSAAuthentication yes    # 这行一定要取消注释的（删掉#号）
+PubkeyAuthentication yes    # 我的服务器没这行，不添加似乎也能用
+AuthorizedKeysFile .ssh/authorized_keys    # 我的服务器没这行，不添加似乎也能用
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">3. 然后systemctl restart sshd，重启ssh服务</span><br><span class="line"></span><br><span class="line">4. 失败</span><br><span class="line"></span><br><span class="line">### 解决方案</span><br><span class="line"></span><br><span class="line">最后查看一下ssh连接时候的debug信息：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+ssh -vvT username@ip
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">发现最后报错是：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+debug1: read_passphrase: can&#39;t open /dev/tty: No such file or directory
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">仔细观察，上面还有一个错：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+we did not send a packet, disable method
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">最后发现需要修改一下几个文件&#x2F;文件夹的权限：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+chmod 0755 ~      # 或 chmod g-w ~   
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+</code></pre>
+</li>
+</ol>
+<p>sudo service sshd restart</p>
+<p>```</p>
+<p>三个权限，我是缺一不可</p>
+<p>Over~</p>
+]]></content>
+      <categories>
+        <category>ubuntu</category>
+      </categories>
+      <tags>
+        <tag>ubuntu</tag>
+      </tags>
+  </entry>
+</search>
