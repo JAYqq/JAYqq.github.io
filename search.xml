@@ -1437,4 +1437,71 @@ chmod 600 ~/.ssh/authorized_keys
         <tag>ubuntu</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Linux的输入输出</title>
+    <url>/2020/10/10/Linux%E7%9A%84%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA/</url>
+    <content><![CDATA[<h2 id="输入输出设备"><a href="#输入输出设备" class="headerlink" title="输入输出设备"></a>输入输出设备</h2><p>输入输出设备我们大致可以分为两类：</p>
+<ul>
+<li>块设备（Block Device）和字符设备（Character Device）。块设备将信息存储在固定大小的块中，每个块都有自己的地址。硬盘就是常见的块设备。</li>
+<li>字符设备发送或接收的是字节流。而不用考虑任何块结构，没有办法寻址。鼠标就是常见的字符设备。</li>
+</ul>
+<h2 id="设备控制器"><a href="#设备控制器" class="headerlink" title="设备控制器"></a>设备控制器</h2><h3 id="设备控制器的作用"><a href="#设备控制器的作用" class="headerlink" title="设备控制器的作用"></a>设备控制器的作用</h3><p>CPU不会直接操作设备，在他们之间有一层设备控制器，例如硬盘有磁盘控制器、USB 有 USB 控制器、显示器有视频控制器等。这些控制器就像代理商一样，它们知道如何应对硬盘、鼠标、键盘、显示器的行为。</p>
+<p>控制器其实有点儿像一台小电脑。它有它的芯片，类似小 CPU，执行自己的逻辑。它也有它的寄存器。<strong>设备控制器的做大作用就是屏蔽了设备差异</strong></p>
+<h3 id="CPU如何操作"><a href="#CPU如何操作" class="headerlink" title="CPU如何操作"></a>CPU如何操作</h3><p>控制器有<strong>寄存器</strong>和<strong>数据缓冲区</strong>，寄存器用作指令的存放，让CPU控制控制器；数据缓冲区用作CPU写数据的缓存，由于块设备传输的数据量比较大，控制器里往往会有缓冲区。CPU 写入缓冲区的数据攒够一部分，才会发给设备。CPU 读取的数据，也需要在缓冲区攒够一部分，才拷贝到内存。</p>
+<h3 id="如何通信"><a href="#如何通信" class="headerlink" title="如何通信"></a>如何通信</h3><ul>
+<li>每个控制寄存器被分配一个 I/O 端口，我们可以通过特殊的汇编指令（例如 in/out 类似的指令）操作这些寄存器。</li>
+<li>数据缓冲区，可<strong>内存映射</strong> I/O，可以分配一段内存空间给它，就像读写内存一样读写数据缓冲区。</li>
+</ul>
+<h3 id="设备如何反馈"><a href="#设备如何反馈" class="headerlink" title="设备如何反馈"></a>设备如何反馈</h3><p>当设备读取完数据后，如何告知CPU？轮询等待？不行不行，所以得主动通知，也就是 <strong>中断</strong>。</p>
+<p>有中断就需要经过中断控制器</p>
+<p><img src="https://i.loli.net/2020/10/10/hpfMjZLlbgEIoTF.jpg"></p>
+<p>如何所有中断都直接让CPU去处理，就需要占用CPU大量的时间片，所以这种类型的设备需要 <strong>DMA</strong>。</p>
+<p>DMA允许设备在 CPU 不参与的情况下，能够自行完成对内存的读写。实现 DMA 机制需要有个 DMA 控制器帮你的 CPU 来做协调，拿CPU和硬盘控制器之间的通信为例：</p>
+<p><img src="https://i.loli.net/2020/10/10/QH1aNgxkc79ARr4.jpg"></p>
+<p>CPU对DMA控制器发送指令（我要读取多少数据，放在内存的哪一块），然后的操作交给DMA来控制，传输完毕DMA发中断给CPU，CPU直接坐享其成去内存拿数据，太舒服了。</p>
+<h2 id="驱动程序"><a href="#驱动程序" class="headerlink" title="驱动程序"></a>驱动程序</h2><p>由于每一种设备控制器的寄存器指令模式都不同，也就是可能你换一个不同型号的硬件设备，就需要准备换一种指令给寄存器了，这对于操作系统是不友好的。所以需要有一个统一的对接部门：设备驱动程序。</p>
+<p>设备控制器是硬件不属于操作系统，而设备驱动程序是软件才属于操作系统。</p>
+<p>所以设备驱动程序做的就是 <strong>屏蔽了设备控制器的差异</strong></p>
+<p>这样，操作系统的内核代码可以像调用本地代码一样调用驱动程序的代码，而驱动程序的代码需要发出特殊的面向设备控制器的指令，才能操作设备控制器。</p>
+<h3 id="中断处理函数"><a href="#中断处理函数" class="headerlink" title="中断处理函数"></a>中断处理函数</h3><p>前面说到处理完数据后需要中断通知CPU，有中断就需要中断处理函数，这个中断处理函是放在的设备驱动程序里面的，处理完以后由设备驱动通知CPU。</p>
+<p>所以，设备驱动程序在初始化的时候就注册了对应设备的中断处理函数。</p>
+<h2 id="通用块层"><a href="#通用块层" class="headerlink" title="通用块层"></a>通用块层</h2><p>如果块设备的数据读没有命中缓存取确实最终要走磁盘，那么内核需要去利用块设备驱动程序去启动IO操作，但是，块设备有很多很多，直接去操作还是需要应对差异性，所以在他们之间，也就是在设备驱动程序和文件系统之间需要有一个统一的功能层，叫做 <strong>通用层</strong>，它屏蔽了不同块设备的IO操作，最后块设备驱动程序给向磁盘控制器发送指令，进行完整的IO操作。</p>
+<p>注意，通用块层只针对块设备，在文件系统之下为所有块设备提供统一逻辑。</p>
+<h2 id="文件系统接口"><a href="#文件系统接口" class="headerlink" title="文件系统接口"></a>文件系统接口</h2><p>我们从硬件设备到设备控制器，到驱动程序，到通用块层，到文件系统，层层屏蔽不同的设备的差别，最终到这里涉及对用户使用接口，也要统一。</p>
+<p>文件系统接口的作用就是 <strong>屏蔽设备驱动程序的差异</strong></p>
+<h3 id="devtmps文件系统"><a href="#devtmps文件系统" class="headerlink" title="devtmps文件系统"></a>devtmps文件系统</h3><p>也就是在/dev目录下，我们可以看淡下面这样的文件：</p>
+<p><img src="https://i.loli.net/2020/10/10/2TMOsmoyZaYGbtk.png"></p>
+<p>b开头表示块设备文件，c开头表示字符文件，后面跟的两个是主设备号和次设备号。主设备号标识设备驱动程序，次设备号标识设备文件。</p>
+<p>我们知道Linux下文件都有inode，但是这些个文件的inode数据块不对应磁盘上的文件，而是建立了和某个设备驱动程序的链接。所以他们是 <strong>特殊设备文件</strong>。</p>
+<p>因此，如果直接操作这些个文件，那么其实是无法操作文件系统上的文件的，比如你想往设备驱动程序里面写一句无关紧要的话，直接echo是没有用的，你需要做的是操作/dev下该文件指向的真正的存在于ext3(默认使用ext3文件系统了哈)文件系统上的文件，才能把修改落到磁盘。</p>
+<h3 id="手动安装驱动"><a href="#手动安装驱动" class="headerlink" title="手动安装驱动"></a>手动安装驱动</h3><p>linux下安装驱动程序其实就是加载一个模块</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">lsmod      #查看哪些内核模块已经被加载</span><br><span class="line">insmod +驱动文件  #加载驱动程序</span><br><span class="line">mknod filename type major minor  #创建设备文件到dev下，这样就可以使用设备文件操作设备驱动程序了</span><br></pre></td></tr></table></figure>
+
+<h3 id="自动化起来—–sysfs文件系统"><a href="#自动化起来—–sysfs文件系统" class="headerlink" title="自动化起来—–sysfs文件系统"></a>自动化起来—–sysfs文件系统</h3><p>Linux怎么可能让我们手动来？难不成我们插个U盘还要自己去加载模块？</p>
+<h4 id="sys-block"><a href="#sys-block" class="headerlink" title="/sys/block"></a>/sys/block</h4><p><img src="https://i.loli.net/2020/10/10/Zp4lNV9qihB8boO.png"></p>
+<p>可以看到这下面是所有的块设备，df -h查看磁盘信息也可以看出来是对应的。</p>
+<h4 id="sys-dev"><a href="#sys-dev" class="headerlink" title="/sys/dev"></a>/sys/dev</h4><p>下面包含char和block文件夹，分别记录了主次设备号的对应关系。</p>
+<p><img src="https://i.loli.net/2020/10/10/6q7j4IcfdZNAoHy.png"></p>
+<h3 id="udev守护进程"><a href="#udev守护进程" class="headerlink" title="udev守护进程"></a>udev守护进程</h3><p>sysfs文件系统为所有设备记录了必要信息，像是管理了起来。</p>
+<p>有了 sysfs 以后，我们还需要一个守护进程 udev。当一个设备新插入系统的时候，内核会检测到这个设备，并会创建一个内核对象 kobject 。 这个对象通过 sysfs 文件系统展现到用户层，同时内核还向用户空间发送一个热插拔消息。udev 会监听这些消息，在 /dev 中创建对应的文件。</p>
+<p><img src="https://i.loli.net/2020/10/10/rOx8H3MqZmsio14.jpg"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>基于《趣谈Linux操作系统》，输入输出设备的管理其实远比这更复杂，从系统的角度讲，为了用户更好的操作设备，需要层层逻辑抽象，到最上面为用户提供最简单的接口比如sys_open（glibc提供open库函数）。所以整个流程基本是（以块设备为主）：</p>
+<ol>
+<li>用户使用库函数或者直接系统调用操作设备</li>
+<li>请求到达虚拟文件系统，比如我们是对ext4文件系统进行IO操作</li>
+<li>那么就会开始操作真的文件系统ext，首先查看缓存，如果命中直接返回数据</li>
+<li>没命中请求就到了通用层，利用统一逻辑去调用对应的设备驱动程序</li>
+<li>IO操作完毕后，利用中断经由DMA通知CPU</li>
+<li>然后完成一次IO操作</li>
+</ol>
+<p>以上步骤忽略了一些细节比如内核态为进程维护的文件数据结构的变化，或者文件描述符相关等等。</p>
+<p>若有不足之处请评论指出。</p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
 </search>
