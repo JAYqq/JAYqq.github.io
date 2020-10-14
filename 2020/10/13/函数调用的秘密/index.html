@@ -20,22 +20,23 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="国画系统相关知识">
+  <meta name="description" content="《深入浅出计算机组成原理》个人记录，理解寄存器在函数调用过程中的作用">
 <meta property="og:type" content="article">
-<meta property="og:title" content="K-Means聚类">
-<meta property="og:url" content="http://example.com/2020/10/05/K-Means%E8%81%9A%E7%B1%BB/index.html">
+<meta property="og:title" content="函数调用的秘密">
+<meta property="og:url" content="http://example.com/2020/10/13/%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%9A%84%E7%A7%98%E5%AF%86/index.html">
 <meta property="og:site_name" content="Mason&#39;s Blog">
-<meta property="og:description" content="国画系统相关知识">
+<meta property="og:description" content="《深入浅出计算机组成原理》个人记录，理解寄存器在函数调用过程中的作用">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://i.loli.net/2019/09/08/kFBSfEot29UH1c3.png">
-<meta property="article:published_time" content="2020-10-05T13:06:36.338Z">
-<meta property="article:modified_time" content="2020-10-05T13:06:36.338Z">
+<meta property="og:image" content="https://i.loli.net/2020/10/13/SvVbpHYIOAf7e4B.png">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-8f2a02c38a3b53ce857b87ed01272b80_720w.png">
+<meta property="article:published_time" content="2020-10-13T09:30:38.042Z">
+<meta property="article:modified_time" content="2020-10-13T10:11:15.087Z">
 <meta property="article:author" content="Mason">
-<meta property="article:tag" content="图像处理">
+<meta property="article:tag" content="操作系统，计算机组成原理">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://i.loli.net/2019/09/08/kFBSfEot29UH1c3.png">
+<meta name="twitter:image" content="https://i.loli.net/2020/10/13/SvVbpHYIOAf7e4B.png">
 
-<link rel="canonical" href="http://example.com/2020/10/05/K-Means%E8%81%9A%E7%B1%BB/">
+<link rel="canonical" href="http://example.com/2020/10/13/%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%9A%84%E7%A7%98%E5%AF%86/">
 
 
 <script id="page-configurations">
@@ -48,7 +49,7 @@
   };
 </script>
 
-  <title>K-Means聚类 | Mason's Blog</title>
+  <title>函数调用的秘密 | Mason's Blog</title>
   
 
 
@@ -196,7 +197,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/05/K-Means%E8%81%9A%E7%B1%BB/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/13/%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%9A%84%E7%A7%98%E5%AF%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -209,7 +210,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          K-Means聚类
+          函数调用的秘密
         </h1>
 
         <div class="post-meta">
@@ -218,8 +219,9 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2020-10-05 21:06:36" itemprop="dateCreated datePublished" datetime="2020-10-05T21:06:36+08:00">2020-10-05</time>
+              <time title="Created: 2020-10-13 17:30:38 / Modified: 18:11:15" itemprop="dateCreated datePublished" datetime="2020-10-13T17:30:38+08:00">2020-10-13</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -227,12 +229,12 @@
               </span>
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">图像处理</span></a>
+                  <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
                 </span>
             </span>
 
           
-            <div class="post-description">国画系统相关知识</div>
+            <div class="post-description">《深入浅出计算机组成原理》个人记录，理解寄存器在函数调用过程中的作用</div>
 
         </div>
       </header>
@@ -243,29 +245,38 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="聚类分析"><a href="#聚类分析" class="headerlink" title="聚类分析"></a>聚类分析</h2><p>数据组内的差别越小，数据组间的差别越大，分类效果会更好</p>
-<h2 id="K-Means"><a href="#K-Means" class="headerlink" title="K-Means"></a>K-Means</h2><h3 id="K均值算法"><a href="#K均值算法" class="headerlink" title="K均值算法"></a>K均值算法</h3><ul>
-<li>优点：易于实现</li>
-<li>缺点：大规模收敛中速度慢</li>
+        <h2 id="CPU如何执行指令"><a href="#CPU如何执行指令" class="headerlink" title="CPU如何执行指令"></a>CPU如何执行指令</h2><p>首先CPU内部有很多寄存器，主要的就三个：</p>
+<ul>
+<li>PC 寄存器（Program Counter Register），我们也叫指令地址寄存器（Instruction Address Register）。顾名思义，它就是用来存放下一条需要执行的计算机指令的内存地址。</li>
+<li>指令寄存器（Instruction Register），用来存放当前正在执行的指令。</li>
+<li>条件码寄存器（Status Register），用里面的一个一个标记位（Flag），存放 CPU 进行算术或者逻辑计算的结果（比如if语句的结果是true或者false需要执行不同的逻辑）</li>
 </ul>
-<h3 id="基本算法逻辑："><a href="#基本算法逻辑：" class="headerlink" title="基本算法逻辑："></a>基本算法逻辑：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">自动选取K个点作为初始质心</span><br><span class="line">repeat:</span><br><span class="line">	将每个点指派到最近的质心，形成K个簇</span><br><span class="line">    重新计算每个簇的簇心</span><br><span class="line">until:</span><br><span class="line">	簇不发生变化或者达到做大迭代次数为止</span><br></pre></td></tr></table></figure>
+<p>这是一点点基础背景，我们继续往下。</p>
+<h2 id="关于程序栈"><a href="#关于程序栈" class="headerlink" title="关于程序栈"></a>关于程序栈</h2><p>我们在执行if else语句的时候，通过objdump出来的汇编代码中可以看到jump指令，但是jump后不会回来了，而我们的函数调用完成后需要返回调用处，<strong>所以，我们需要一个机制去保存调用处地址，这个机制就是程序栈</strong></p>
+<h3 id="栗子程序"><a href="#栗子程序" class="headerlink" title="栗子程序"></a>栗子程序</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// function_example.c</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="keyword">static</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> x = <span class="number">5</span>;</span><br><span class="line">    <span class="keyword">int</span> y = <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">int</span> u = add(x, y);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="簇心的计算"><a href="#簇心的计算" class="headerlink" title="簇心的计算"></a>簇心的计算</h3><p>采用<strong>误差平方和</strong>（SSE）作为聚类的目标函数</p>
-<p><a target="_blank" rel="noopener" href="https://i.loli.net/2019/09/08/kFBSfEot29UH1c3.png"><img src="https://i.loli.net/2019/09/08/kFBSfEot29UH1c3.png" alt="25.png"></a></p>
-<p>SSE计算每个点到这个K心距离的均值，然后（所有距离-平均距离）/点数</p>
-<h3 id="K-Means算法的缺陷"><a href="#K-Means算法的缺陷" class="headerlink" title="K-Means算法的缺陷"></a>K-Means算法的缺陷</h3><p>k均值算法非常简单且使用广泛，但是其有主要的两个缺陷：</p>
+<p>objdump查看汇编后：</p>
+<p><img src="https://i.loli.net/2020/10/13/SvVbpHYIOAf7e4B.png"></p>
+<p>涉及到call指令，以及对rsp，rbp的操作，对于 x86-64 架构，共有16个64位通用寄存器，各寄存器及用途如下图所示：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-8f2a02c38a3b53ce857b87ed01272b80_720w.png" alt="img"></p>
+<p>（转载自 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/27339191%EF%BC%89">https://zhuanlan.zhihu.com/p/27339191）</a></p>
+<ul>
+<li>%rax 通常用于存储函数调用的返回结果，同时也用于乘法和除法指令中。在imul 指令中，两个64位的乘法最多会产生128位的结果，需要 %rax 与 %rdx 共同存储乘法结果，在div 指令中被除数是128 位的，同样需要%rax 与 %rdx 共同存储被除数。</li>
+<li>%rsp 是堆栈指针寄存器，通常会<strong>指向栈顶位置</strong>，堆栈的 pop 和push 操作就是通过改变 %rsp 的值即移动堆栈指针的位置来实现的。</li>
+<li>%rbp 是<strong>栈帧指针，用于标识当前栈帧的起始位置</strong></li>
+<li>%rdi, %rsi, %rdx, %rcx,%r8, %r9 六个寄存器用于存储函数调用时的6个参数（如果有6个或6个以上参数的话）。</li>
+<li>被标识为 “miscellaneous registers” 的寄存器，属于通用性更为广泛的寄存器，编译器或汇编程序可以根据需要存储任何数据。</li>
+</ul>
+<p>大致的调用过程如下：</p>
 <ol>
-<li>K值需要预先给定，属于预先知识，很多情况下K值的估计是非常困难的，对于像计算全部微信用户的交往圈这样的场景就完全的没办法用K-Means进行。对于可以确定K值不会太大但不明确精确的K值的场景，可以进行迭代运算，然后找出Cost Function最小时所对应的K值，这个值往往能较好的描述有多少个簇类。</li>
-<li>K-Means算法对初始选取的聚类中心点是敏感的，不同的随机种子点得到的聚类结果完全不同</li>
-<li>K均值算法并不是很所有的数据类型。它不能处理非球形簇、不同尺寸和不同密度的簇，银冠指定足够大的簇的个数是他通常可以发现纯子簇。</li>
-<li>对离群点的数据进行聚类时，K均值也有问题，这种情况下，离群点检测和删除有很大的帮助。</li>
+<li>call会把当前PC寄存器里面下一条指令的地址压栈，然后跳转到add</li>
+<li>add首先push rbp表示把当前栈帧的起始地址也就是main的栈帧入栈到栈顶（注意这里栈是内存空间，不是寄存器）</li>
+<li>然后mov rbp, rsp，就是把rsp栈顶指针（此时是add函数栈帧的栈底）复制到rbp中，这样rbp栈帧指针指向的就是当前最新的栈顶</li>
+<li>完成后然后pop rbp将当前的栈顶出栈</li>
+<li>reset就会把call压入的下一条命令地址恢复到PC寄存器，让CPU可以继续运行</li>
 </ol>
-<p>所以缺陷的问题主要是在初始质心的不确定性导致差别度太高以及聚类时候需要K*N次集计算操作效率的低下。</p>
-<h3 id="K-Means优化算法"><a href="#K-Means优化算法" class="headerlink" title="K-Means优化算法"></a>K-Means优化算法</h3><p>为了克服K-Means算法收敛于局部最小值的问题，提出了一种二分K-均值(bisecting K-means)</p>
-<h4 id="bisecting-K-means"><a href="#bisecting-K-means" class="headerlink" title="bisecting K-means"></a>bisecting K-means</h4><p>算法的伪代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">将所有的点看成是一个簇</span><br><span class="line">当簇小于数目k时</span><br><span class="line">    对于每一个簇</span><br><span class="line">        计算总误差</span><br><span class="line">        在给定的簇上进行K-均值聚类,k值为2</span><br><span class="line">        计算将该簇划分成两个簇后总误差</span><br><span class="line">    选择是的误差最小的那个簇进行划分</span><br></pre></td></tr></table></figure>
-
-<h4 id="Mini-Batch-k-Means"><a href="#Mini-Batch-k-Means" class="headerlink" title="Mini Batch k-Means"></a>Mini Batch k-Means</h4><p>在原始的K-means算法中，每一次的划分所有的样本都要参与运算，如果数据量非常大的话，这个时间是非常高的，因此有了一种分批处理的改进算法。<br>使用Mini Batch（分批处理）的方法对数据点之间的距离进行计算。<br>Mini Batch的好处：不必使用所有的数据样本，而是从不同类别的样本中抽取一部分样本来代表各自类型进行计算。n 由于计算样本量少，所以会相应的减少运行时间n 但另一方面抽样也必然会带来准确度的下降。</p>
+<h2 id="从指令来看内联函数"><a href="#从指令来看内联函数" class="headerlink" title="从指令来看内联函数"></a>从指令来看内联函数</h2><p>内联函数本质上就是减少了指令的数量来优化程序，不然还得需要一个call指令，涉及到一些寄存器的操作</p>
+<p>但是当有多处调用内敛函数时，指令其实反而会更多，所以具体情况具体分析。</p>
 
     </div>
 
@@ -275,7 +286,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" rel="tag"># 图像处理</a>
+              <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%EF%BC%8C%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BB%84%E6%88%90%E5%8E%9F%E7%90%86/" rel="tag"># 操作系统，计算机组成原理</a>
           </div>
 
         
@@ -284,13 +295,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/10/05/Python%E5%9F%BA%E7%A1%80---%E5%85%83%E7%A5%96/" rel="prev" title="Python基础---元祖">
-      <i class="fa fa-chevron-left"></i> Python基础---元祖
+    <a href="/2020/10/13/Java%E5%8F%8D%E5%B0%84%E2%80%94%E2%80%94%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/" rel="prev" title="Java反射——动态代理">
+      <i class="fa fa-chevron-left"></i> Java反射——动态代理
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2020/10/05/IP%E4%B8%8E%E4%BB%A5%E5%A4%AA%E7%BD%91%E7%9A%84%E5%8C%85%E6%94%B6%E5%8F%91%E6%93%8D%E4%BD%9C(%E4%BA%8C)/" rel="next" title="IP与以太网的包收发操作(二)">
-      IP与以太网的包收发操作(二) <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -349,7 +357,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%9A%E7%B1%BB%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">聚类分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#K-Means"><span class="nav-number">2.</span> <span class="nav-text">K-Means</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#K%E5%9D%87%E5%80%BC%E7%AE%97%E6%B3%95"><span class="nav-number">2.1.</span> <span class="nav-text">K均值算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%AE%97%E6%B3%95%E9%80%BB%E8%BE%91%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">基本算法逻辑：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B0%87%E5%BF%83%E7%9A%84%E8%AE%A1%E7%AE%97"><span class="nav-number">2.3.</span> <span class="nav-text">簇心的计算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#K-Means%E7%AE%97%E6%B3%95%E7%9A%84%E7%BC%BA%E9%99%B7"><span class="nav-number">2.4.</span> <span class="nav-text">K-Means算法的缺陷</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#K-Means%E4%BC%98%E5%8C%96%E7%AE%97%E6%B3%95"><span class="nav-number">2.5.</span> <span class="nav-text">K-Means优化算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#bisecting-K-means"><span class="nav-number">2.5.1.</span> <span class="nav-text">bisecting K-means</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Mini-Batch-k-Means"><span class="nav-number">2.5.2.</span> <span class="nav-text">Mini Batch k-Means</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CPU%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E6%8C%87%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">CPU如何执行指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E7%A8%8B%E5%BA%8F%E6%A0%88"><span class="nav-number">2.</span> <span class="nav-text">关于程序栈</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%97%E5%AD%90%E7%A8%8B%E5%BA%8F"><span class="nav-number">2.1.</span> <span class="nav-text">栗子程序</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E6%8C%87%E4%BB%A4%E6%9D%A5%E7%9C%8B%E5%86%85%E8%81%94%E5%87%BD%E6%95%B0"><span class="nav-number">3.</span> <span class="nav-text">从指令来看内联函数</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

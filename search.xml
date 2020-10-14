@@ -1551,4 +1551,94 @@ chmod 600 ~/.ssh/authorized_keys
         <tag>Java</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Java反射——动态代理</title>
+    <url>/2020/10/13/Java%E5%8F%8D%E5%B0%84%E2%80%94%E2%80%94%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/</url>
+    <content><![CDATA[<h2 id="从一个需求开始"><a href="#从一个需求开始" class="headerlink" title="从一个需求开始"></a>从一个需求开始</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Hello</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Target</span> <span class="keyword">implements</span>  <span class="title">Hello</span></span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;----This is a log----&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里有一个Target类继承接口Hello，里面的say_hello方法我们希望在执行它之前输出一条日志，那我们的做法有下面几种：</p>
+<ol>
+<li>直接在say_hello中加日志</li>
+<li>创建另一个class，在另一个class中写日志逻辑</li>
+</ol>
+<p>第一种就不说了，我们实现了第二种：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Hello</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Target</span> <span class="keyword">implements</span>  <span class="title">Hello</span></span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">say_hello</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello world&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Proxy_Target</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Proxy_Target</span><span class="params">(Target trg)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.trg=trg;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">logger_hello</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;----This is a log----&quot;</span>);</span><br><span class="line">        trg.say_hello();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> Target trg;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">	<span class="comment">// write your code here</span></span><br><span class="line">        Target trg = <span class="keyword">new</span> Target();</span><br><span class="line">        Proxy_Target ptrg = <span class="keyword">new</span> Proxy_Target(trg);</span><br><span class="line">        ptrg.logger_hello();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们实现了一个代理类 Proxy_Target，在构造函数中把Target类对象作为参数输入进来，然后在logger_hello方法中先打印日志，然后继续执行原来的say_hello，这就是 <strong>静态代理</strong>的写法</p>
+<h3 id="静态代理的缺点"><a href="#静态代理的缺点" class="headerlink" title="静态代理的缺点"></a>静态代理的缺点</h3><p>如果有成千上万个类，A可能需要say_hello，B可能需要say_morning，那么就需要为每一个类定制化了，工作量太大，所以 <strong>现在我们的努力方向是：如何少写或者不写代理类，却能完成代理功能？</strong></p>
+<h2 id="理解Class"><a href="#理解Class" class="headerlink" title="理解Class"></a>理解Class</h2><p>class是类，可以描述一个事物各项特征，那么有没有东西可以描述class呢？答案是Class</p>
+<h2 id="动态代理解决"><a href="#动态代理解决" class="headerlink" title="动态代理解决"></a>动态代理解决</h2><p>所谓动态代理，其实就是 <strong>不手写代理类，而是通过构造器去动态生成</strong>，但是无论如何，我们动态生成的最后结果还是得上面Proxy_Target这样的形式，只不过在有几千几万个类需要代理时，不需要重写整个代理类了，而是像工厂一样生成。</p>
+<h3 id="具体做法"><a href="#具体做法" class="headerlink" title="具体做法"></a>具体做法</h3><p>从Interface这个公共接口下手，interface无法去实例化（因为他的Class中没有构造器），所以可以去获取Interface的Class，然后创建出一个包含构造器的类（其实就相当于是一个代理类了）。</p>
+<h3 id="硬编码"><a href="#硬编码" class="headerlink" title="硬编码"></a>硬编码</h3><p>我们先上硬编码，慢慢优化：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Throwable</span>&#123;</span><br><span class="line">        <span class="comment">//得到一个代理类</span></span><br><span class="line">        Class hello_proxy = Proxy.getProxyClass(Hello.class.getClassLoader(),Hello.class);</span><br><span class="line">        <span class="comment">//得到代参构造器</span></span><br><span class="line">        Constructor constructor =  hello_proxy.getConstructor(InvocationHandler.class);</span><br><span class="line">        <span class="comment">//反射创建代理</span></span><br><span class="line">        Hello hello = (Hello) constructor.newInstance(<span class="keyword">new</span> InvocationHandler() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">                Target trg = <span class="keyword">new</span> Target();</span><br><span class="line">                System.out.println(<span class="string">&quot;This is a Dynamic Log&quot;</span>);</span><br><span class="line">                Object result = method.invoke(trg,args);</span><br><span class="line">                <span class="keyword">return</span> result;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        hello.say_hello();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们使用了<strong>getProxyClass</strong>方法，它的功能其实就是 <strong>用Class构造Class</strong>，传入类加载器和接口的具体Class信息，然后返回一个可以实例化的Class。</p>
+<p>然后通过<strong>getConstructor</strong>获取构造器，传入InvocationHandler的Class，表示后面使用这个构造器构造出来的类的时候，都会主动调用里面的invoke方法，后面通过 <strong>newInstance</strong>创建代理实例。</p>
+<p>然后通过invoke去反射调用trg的say_hello方法。</p>
+<h3 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h3><p>上面如果需要换一个类，那么还需要修改invoke，也会很麻烦，所以我们封装成函数来：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Throwable</span>&#123;</span><br><span class="line">        Target trg = <span class="keyword">new</span> Target();</span><br><span class="line">        Hello hello = (Hello) getProxy(trg);</span><br><span class="line">        hello.say_hello();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> Object <span class="title">getProxy</span><span class="params">(<span class="keyword">final</span> Object target)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        Class hello_proxy = Proxy.getProxyClass(Hello.class.getClassLoader(),Hello.class);</span><br><span class="line">        Constructor constructor = hello_proxy.getConstructor(InvocationHandler.class);</span><br><span class="line">        Object proxy_obj = constructor.newInstance(<span class="keyword">new</span> InvocationHandler() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;This is a Dynamic Log&quot;</span>);</span><br><span class="line">                Object result = method.invoke(target,args);</span><br><span class="line">                <span class="keyword">return</span> result;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="keyword">return</span> proxy_obj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getProxy直接返回一个代理类对象，适用于每一个类了。</p>
+<h3 id="封装成类"><a href="#封装成类" class="headerlink" title="封装成类"></a>封装成类</h3><p>一般不用getProxyClass方法，而是newProxyInstance，下面其实也就是在bind里面把getProxyClass换成了newProxyInstance，参数变了一遍，功能是一样的。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.company;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Proxy;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Proxy_Object</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Object obj;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">bind</span><span class="params">(Object obj)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.obj=obj;</span><br><span class="line">        <span class="keyword">return</span> Proxy.newProxyInstance(</span><br><span class="line">                <span class="keyword">this</span>.obj.getClass().getClassLoader(),<span class="keyword">this</span>.obj.getClass().getInterfaces(),<span class="keyword">this</span>::invoke</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method,Object[] args)</span> <span class="keyword">throws</span> Throwable</span>&#123;</span><br><span class="line">        Object result = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;This is a Dynamic Log&quot;</span>);</span><br><span class="line">            result = method.invoke(<span class="keyword">this</span>.obj,args);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (Exception e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Proxy_Object p_obj = <span class="keyword">new</span> Proxy_Object();</span><br><span class="line">        Target trg = <span class="keyword">new</span> Target();</span><br><span class="line">        Hello hello = (Hello) p_obj.bind(trg);</span><br><span class="line">        hello.say_hello();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">This is a Dynamic Log</span><br><span class="line">Hello world</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>函数调用的秘密</title>
+    <url>/2020/10/13/%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%9A%84%E7%A7%98%E5%AF%86/</url>
+    <content><![CDATA[<h2 id="CPU如何执行指令"><a href="#CPU如何执行指令" class="headerlink" title="CPU如何执行指令"></a>CPU如何执行指令</h2><p>首先CPU内部有很多寄存器，主要的就三个：</p>
+<ul>
+<li>PC 寄存器（Program Counter Register），我们也叫指令地址寄存器（Instruction Address Register）。顾名思义，它就是用来存放下一条需要执行的计算机指令的内存地址。</li>
+<li>指令寄存器（Instruction Register），用来存放当前正在执行的指令。</li>
+<li>条件码寄存器（Status Register），用里面的一个一个标记位（Flag），存放 CPU 进行算术或者逻辑计算的结果（比如if语句的结果是true或者false需要执行不同的逻辑）</li>
+</ul>
+<p>这是一点点基础背景，我们继续往下。</p>
+<h2 id="关于程序栈"><a href="#关于程序栈" class="headerlink" title="关于程序栈"></a>关于程序栈</h2><p>我们在执行if else语句的时候，通过objdump出来的汇编代码中可以看到jump指令，但是jump后不会回来了，而我们的函数调用完成后需要返回调用处，<strong>所以，我们需要一个机制去保存调用处地址，这个机制就是程序栈</strong></p>
+<h3 id="栗子程序"><a href="#栗子程序" class="headerlink" title="栗子程序"></a>栗子程序</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// function_example.c</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="keyword">static</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a+b;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> x = <span class="number">5</span>;</span><br><span class="line">    <span class="keyword">int</span> y = <span class="number">10</span>;</span><br><span class="line">    <span class="keyword">int</span> u = add(x, y);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>objdump查看汇编后：</p>
+<p><img src="https://i.loli.net/2020/10/13/SvVbpHYIOAf7e4B.png"></p>
+<p>涉及到call指令，以及对rsp，rbp的操作，对于 x86-64 架构，共有16个64位通用寄存器，各寄存器及用途如下图所示：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-8f2a02c38a3b53ce857b87ed01272b80_720w.png" alt="img"></p>
+<p>（转载自 <a href="https://zhuanlan.zhihu.com/p/27339191%EF%BC%89">https://zhuanlan.zhihu.com/p/27339191）</a></p>
+<ul>
+<li>%rax 通常用于存储函数调用的返回结果，同时也用于乘法和除法指令中。在imul 指令中，两个64位的乘法最多会产生128位的结果，需要 %rax 与 %rdx 共同存储乘法结果，在div 指令中被除数是128 位的，同样需要%rax 与 %rdx 共同存储被除数。</li>
+<li>%rsp 是堆栈指针寄存器，通常会<strong>指向栈顶位置</strong>，堆栈的 pop 和push 操作就是通过改变 %rsp 的值即移动堆栈指针的位置来实现的。</li>
+<li>%rbp 是<strong>栈帧指针，用于标识当前栈帧的起始位置</strong></li>
+<li>%rdi, %rsi, %rdx, %rcx,%r8, %r9 六个寄存器用于存储函数调用时的6个参数（如果有6个或6个以上参数的话）。</li>
+<li>被标识为 “miscellaneous registers” 的寄存器，属于通用性更为广泛的寄存器，编译器或汇编程序可以根据需要存储任何数据。</li>
+</ul>
+<p>大致的调用过程如下：</p>
+<ol>
+<li>call会把当前PC寄存器里面下一条指令的地址压栈，然后跳转到add</li>
+<li>add首先push rbp表示把当前栈帧的起始地址也就是main的栈帧入栈到栈顶（注意这里栈是内存空间，不是寄存器）</li>
+<li>然后mov rbp, rsp，就是把rsp栈顶指针（此时是add函数栈帧的栈底）复制到rbp中，这样rbp栈帧指针指向的就是当前最新的栈顶</li>
+<li>完成后然后pop rbp将当前的栈顶出栈</li>
+<li>reset就会把call压入的下一条命令地址恢复到PC寄存器，让CPU可以继续运行</li>
+</ol>
+<h2 id="从指令来看内联函数"><a href="#从指令来看内联函数" class="headerlink" title="从指令来看内联函数"></a>从指令来看内联函数</h2><p>内联函数本质上就是减少了指令的数量来优化程序，不然还得需要一个call指令，涉及到一些寄存器的操作</p>
+<p>但是当有多处调用内敛函数时，指令其实反而会更多，所以具体情况具体分析。</p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>操作系统，计算机组成原理</tag>
+      </tags>
+  </entry>
 </search>
