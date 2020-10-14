@@ -1,6 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>C++类(三)--抽象数据类型</title>
+    <url>/2020/10/05/C++%E7%B1%BB(%E4%B8%89)--%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%92%8C%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/</url>
+    <content><![CDATA[<h2 id="抽象数据类型"><a href="#抽象数据类型" class="headerlink" title="抽象数据类型"></a>抽象数据类型</h2><h3 id="类中的this指针"><a href="#类中的this指针" class="headerlink" title="类中的this指针"></a>类中的this指针</h3><p>this指针本身是一个常量指针，也就是this本身地址不允许被改变。</p>
+<p>类的实例调用类成员函数或者成员变量的时候是有隐含this指针的，比如:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Stu</span>&#123;</span></span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">get_num</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> num;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//Stu st;</span></span><br><span class="line"><span class="comment">//st.get_num()</span></span><br></pre></td></tr></table></figure>
+
+<p>还可以将那些不会对成员变量修改的成员函数的this指针设为const常量，比如：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Stu</span>&#123;</span></span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">get_num</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> num;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样由于this指针成为了指向常量的指针，所以不可以修改成员变量了。</p>
+<h3 id="类相关的非成员函数"><a href="#类相关的非成员函数" class="headerlink" title="类相关的非成员函数"></a>类相关的非成员函数</h3><p>类的设计中成员函数一定是一些主要的功能函数，而对于一些没必要的，但是概念上属于类的函数定义为成员函数，比如对于成员变量的输出输入，<strong>这样的在概念上相关但是功能上无关的函数，定义为非成员函数。并且最好和头文件定义在一起，只不过不在类中。</strong></p>
+<h2 id="访问控制与封装"><a href="#访问控制与封装" class="headerlink" title="访问控制与封装"></a>访问控制与封装</h2><h3 id="public"><a href="#public" class="headerlink" title="public"></a>public</h3><p>之后的成员变量可以被程序中所有代码访问</p>
+<h3 id="private"><a href="#private" class="headerlink" title="private"></a>private</h3><p>可以被该类的成员函数、友元函数访问，但是不能被类的实例或者其他访问</p>
+<h3 id="protect"><a href="#protect" class="headerlink" title="protect"></a>protect</h3><p>在private的权限上还可以被子类的成员函数访问</p>
+<h3 id="class和struct"><a href="#class和struct" class="headerlink" title="class和struct"></a>class和struct</h3><p>唯一的区别只是内部的默认权限，struct默认是public，class默认是private</p>
+<h3 id="友元函数"><a href="#友元函数" class="headerlink" title="友元函数"></a>友元函数</h3><p>对于那些类相关的非成员函数，也需要访问类的成员，但是没有权限，所以可以申明friend函数在类中打破这种权限。</p>
+]]></content>
+      <categories>
+        <category>c++</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>C++并发编程-生产者消费者模型</title>
     <url>/2020/10/05/C++%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B-%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E6%A8%A1%E5%9E%8B/</url>
     <content><![CDATA[<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><p>这里的生产者消费者将“产品”放入数组中。</p>
@@ -106,31 +131,6 @@
 
 <p>我们都知道，当表达式a为true时，b和c将不会被求值，<br>但是如果重载了||，并将它作用于重载对象，那它将不会有此性质，而是三个表达式都会求值。因此如果想要重载后的运算符也有短路性质，你是很难期望了。</p>
 <p>注意，这里<strong>不建议并非不能重载</strong>。</p>
-]]></content>
-      <categories>
-        <category>c++</category>
-      </categories>
-      <tags>
-        <tag>c++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++类(三)--抽象数据类型</title>
-    <url>/2020/10/05/C++%E7%B1%BB(%E4%B8%89)--%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%92%8C%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/</url>
-    <content><![CDATA[<h2 id="抽象数据类型"><a href="#抽象数据类型" class="headerlink" title="抽象数据类型"></a>抽象数据类型</h2><h3 id="类中的this指针"><a href="#类中的this指针" class="headerlink" title="类中的this指针"></a>类中的this指针</h3><p>this指针本身是一个常量指针，也就是this本身地址不允许被改变。</p>
-<p>类的实例调用类成员函数或者成员变量的时候是有隐含this指针的，比如:</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Stu</span>&#123;</span></span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">get_num</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> num;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//Stu st;</span></span><br><span class="line"><span class="comment">//st.get_num()</span></span><br></pre></td></tr></table></figure>
-
-<p>还可以将那些不会对成员变量修改的成员函数的this指针设为const常量，比如：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Stu</span>&#123;</span></span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">get_num</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> num;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这样由于this指针成为了指向常量的指针，所以不可以修改成员变量了。</p>
-<h3 id="类相关的非成员函数"><a href="#类相关的非成员函数" class="headerlink" title="类相关的非成员函数"></a>类相关的非成员函数</h3><p>类的设计中成员函数一定是一些主要的功能函数，而对于一些没必要的，但是概念上属于类的函数定义为成员函数，比如对于成员变量的输出输入，<strong>这样的在概念上相关但是功能上无关的函数，定义为非成员函数。并且最好和头文件定义在一起，只不过不在类中。</strong></p>
-<h2 id="访问控制与封装"><a href="#访问控制与封装" class="headerlink" title="访问控制与封装"></a>访问控制与封装</h2><h3 id="public"><a href="#public" class="headerlink" title="public"></a>public</h3><p>之后的成员变量可以被程序中所有代码访问</p>
-<h3 id="private"><a href="#private" class="headerlink" title="private"></a>private</h3><p>可以被该类的成员函数、友元函数访问，但是不能被类的实例或者其他访问</p>
-<h3 id="protect"><a href="#protect" class="headerlink" title="protect"></a>protect</h3><p>在private的权限上还可以被子类的成员函数访问</p>
-<h3 id="class和struct"><a href="#class和struct" class="headerlink" title="class和struct"></a>class和struct</h3><p>唯一的区别只是内部的默认权限，struct默认是public，class默认是private</p>
-<h3 id="友元函数"><a href="#友元函数" class="headerlink" title="友元函数"></a>友元函数</h3><p>对于那些类相关的非成员函数，也需要访问类的成员，但是没有权限，所以可以申明friend函数在类中打破这种权限。</p>
 ]]></content>
       <categories>
         <category>c++</category>
@@ -1132,6 +1132,24 @@
       </tags>
   </entry>
   <entry>
+    <title>Hello World</title>
+    <url>/2020/10/05/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
     <title>face-recognition模块初探</title>
     <url>/2020/10/05/face-recognition%E6%A8%A1%E5%9D%97%E5%88%9D%E6%8E%A2/</url>
     <content><![CDATA[<h2 id="face-recognition模块初探"><a href="#face-recognition模块初探" class="headerlink" title="face-recognition模块初探"></a>face-recognition模块初探</h2><p>因为要参加一个比赛，用到人脸识别，所以准备简单的学习一下，能够利用起来就好</p>
@@ -1167,24 +1185,6 @@
         <tag>Python</tag>
         <tag>人脸识别</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2020/10/05/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
   </entry>
   <entry>
     <title>nohup在后台跑脚本</title>
