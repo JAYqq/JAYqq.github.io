@@ -1641,4 +1641,54 @@ chmod 600 ~/.ssh/authorized_keys
         <tag>ubuntu</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Java泛型浅谈</title>
+    <url>/2020/10/15/Java%E6%B3%9B%E5%9E%8B%E9%9A%8F%E7%AC%94/</url>
+    <content><![CDATA[<p>参考<a href="https://www.liaoxuefeng.com/wiki/1252599548343744/1265104600263968">https://www.liaoxuefeng.com/wiki/1252599548343744/1265104600263968</a></p>
+<h2 id="什么是泛型"><a href="#什么是泛型" class="headerlink" title="什么是泛型"></a>什么是泛型</h2><p>可以暂时理解为C++中的模板，但是不完全相同，后面说明，目的就是为了适用于不同<strong>对象类型</strong>。</p>
+<h3 id="怎么使用泛型"><a href="#怎么使用泛型" class="headerlink" title="怎么使用泛型"></a>怎么使用泛型</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Pair</span>&lt;<span class="title">T</span>&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">private</span> T first;</span><br><span class="line">    <span class="keyword">private</span> T last;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Pair</span><span class="params">(T first, T last)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.first = first;</span><br><span class="line">        <span class="keyword">this</span>.last = last;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> T <span class="title">getFirst</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> first;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> T <span class="title">getLast</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> last;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里模仿C++的Pair压缩版，这样可以传入不同的类型的Pair。</p>
+<h2 id="泛型中的擦拭"><a href="#泛型中的擦拭" class="headerlink" title="泛型中的擦拭"></a>泛型中的擦拭</h2><h3 id="什么是擦拭"><a href="#什么是擦拭" class="headerlink" title="什么是擦拭"></a>什么是擦拭</h3><p>先来看一个例子</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    Pair&lt;String&gt; pair1 = <span class="keyword">new</span> Pair&lt;&gt;(<span class="string">&quot;Mason&quot;</span>,<span class="string">&quot;Jack&quot;</span>);</span><br><span class="line">    Pair&lt;Integer&gt; pair2 = <span class="keyword">new</span> Pair&lt;&gt;(<span class="number">11</span>,<span class="number">22</span>);</span><br><span class="line">    System.out.println(pair1.getClass()==pair2.getClass());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出是true</p>
+<p>但是我们明明传入的是不同的对象，怎么他们的Class信息是一样的？这就是JVM在编译的时候擦拭方法。</p>
+<p><strong>简单来说就是编译后所有的T都会变成Object，然后去安全的强制转换</strong></p>
+<h3 id="泛型的限制"><a href="#泛型的限制" class="headerlink" title="泛型的限制"></a>泛型的限制</h3><ol>
+<li><p>只能接收对象，对于基本类型无法传入，也就是int、float这样的</p>
+</li>
+<li><p>无法获取泛型的Class信息</p>
+</li>
+<li><p>内部无法实例化T，也就是如果是</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Pair</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> T first;</span><br><span class="line">    <span class="keyword">private</span> T last;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Pair</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Compile error:</span></span><br><span class="line">        first = <span class="keyword">new</span> T();</span><br><span class="line">        last = <span class="keyword">new</span> T();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>就不行，因为经过擦拭后变为：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">first = <span class="keyword">new</span> Object();</span><br><span class="line">last = <span class="keyword">new</span> Object();</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h2 id="继承中的泛型"><a href="#继承中的泛型" class="headerlink" title="继承中的泛型"></a>继承中的泛型</h2><p>如果有子类继承Pair</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">newList</span> <span class="keyword">extends</span> <span class="title">Pair</span>&lt;<span class="title">String</span>&gt;</span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">newList</span><span class="params">(String a,String b)</span></span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(a,b);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么我们是可以通过子类获取父类的字段类型的</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    Class&lt;newList&gt; clazz = newList.class;</span><br><span class="line">    Type t = clazz.getGenericSuperclass(); <span class="comment">//获取带有泛型的父类</span></span><br><span class="line">    <span class="keyword">if</span> (t <span class="keyword">instanceof</span> ParameterizedType) &#123;</span><br><span class="line">        ParameterizedType pt = (ParameterizedType) t;</span><br><span class="line">        Type[] types = pt.getActualTypeArguments(); <span class="comment">// 可能有多个泛型类型</span></span><br><span class="line">        Type firstType = types[<span class="number">0</span>]; <span class="comment">// 取第一个泛型类型</span></span><br><span class="line">        Class&lt;?&gt; typeClass = (Class&lt;?&gt;) firstType;</span><br><span class="line">        System.out.println(typeClass); <span class="comment">// Integer</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>打印出</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class java.lang.String</span><br></pre></td></tr></table></figure>
+
+<p>正确打印出String</p>
+<h3 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h3><ol>
+<li>ParameterizedType 是Type大类中一种，表示泛型类型</li>
+<li>getGenericSuperclass 是获取泛型父类，getSuperclass就是简单父类</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>文章中提到的Type是很重要一个概念，与泛型有着千丝万缕的关系，后面专门有文章介绍Type</p>
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
 </search>
