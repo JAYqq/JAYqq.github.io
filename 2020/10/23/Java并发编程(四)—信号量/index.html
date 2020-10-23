@@ -20,20 +20,21 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Python虚拟环境配置">
+  <meta name="description" content="《Java并发编程艺术mini》and 极客《Java并发编程实战》">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ubuntu上安装virtualenvwrapper">
-<meta property="og:url" content="http://example.com/2020/10/05/ubuntu%E4%B8%8A%E5%AE%89%E8%A3%85virtualenvwrapper/index.html">
+<meta property="og:title" content="Java并发编程(三)——信号量">
+<meta property="og:url" content="http://example.com/2020/10/23/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E5%9B%9B)%E2%80%94%E4%BF%A1%E5%8F%B7%E9%87%8F/index.html">
 <meta property="og:site_name" content="Mason&#39;s Blog">
-<meta property="og:description" content="Python虚拟环境配置">
+<meta property="og:description" content="《Java并发编程艺术mini》and 极客《Java并发编程实战》">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2020-10-05T13:06:36.338Z">
-<meta property="article:modified_time" content="2020-10-05T13:06:36.338Z">
+<meta property="article:published_time" content="2020-10-23T08:37:50.348Z">
+<meta property="article:modified_time" content="2020-10-23T13:17:29.373Z">
 <meta property="article:author" content="Mason">
-<meta property="article:tag" content="ubuntu">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2020/10/05/ubuntu%E4%B8%8A%E5%AE%89%E8%A3%85virtualenvwrapper/">
+<link rel="canonical" href="http://example.com/2020/10/23/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E5%9B%9B)%E2%80%94%E4%BF%A1%E5%8F%B7%E9%87%8F/">
 
 
 <script id="page-configurations">
@@ -46,7 +47,7 @@
   };
 </script>
 
-  <title>ubuntu上安装virtualenvwrapper | Mason's Blog</title>
+  <title>Java并发编程(三)——信号量 | Mason's Blog</title>
   
 
 
@@ -194,7 +195,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/05/ubuntu%E4%B8%8A%E5%AE%89%E8%A3%85virtualenvwrapper/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/23/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E5%9B%9B)%E2%80%94%E4%BF%A1%E5%8F%B7%E9%87%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -207,7 +208,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          ubuntu上安装virtualenvwrapper
+          Java并发编程(三)——信号量
         </h1>
 
         <div class="post-meta">
@@ -216,8 +217,9 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2020-10-05 21:06:36" itemprop="dateCreated datePublished" datetime="2020-10-05T21:06:36+08:00">2020-10-05</time>
+              <time title="Created: 2020-10-23 16:37:50 / Modified: 21:17:29" itemprop="dateCreated datePublished" datetime="2020-10-23T16:37:50+08:00">2020-10-23</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -225,12 +227,12 @@
               </span>
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/ubuntu/" itemprop="url" rel="index"><span itemprop="name">ubuntu</span></a>
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
                 </span>
             </span>
 
           
-            <span id="/2020/10/05/ubuntu%E4%B8%8A%E5%AE%89%E8%A3%85virtualenvwrapper/" class="post-meta-item leancloud_visitors" data-flag-title="ubuntu上安装virtualenvwrapper" title="Views">
+            <span id="/2020/10/23/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E5%9B%9B)%E2%80%94%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="post-meta-item leancloud_visitors" data-flag-title="Java并发编程(三)——信号量" title="Views">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -245,13 +247,13 @@
       </span>
       <span class="post-meta-item-text">Valine: </span>
     
-    <a title="valine" href="/2020/10/05/ubuntu%E4%B8%8A%E5%AE%89%E8%A3%85virtualenvwrapper/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/05/ubuntu%E4%B8%8A%E5%AE%89%E8%A3%85virtualenvwrapper/" itemprop="commentCount"></span>
+    <a title="valine" href="/2020/10/23/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E5%9B%9B)%E2%80%94%E4%BF%A1%E5%8F%B7%E9%87%8F/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/23/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E5%9B%9B)%E2%80%94%E4%BF%A1%E5%8F%B7%E9%87%8F/" itemprop="commentCount"></span>
     </a>
   </span>
   
   
-            <div class="post-description">Python虚拟环境配置</div>
+            <div class="post-description">《Java并发编程艺术mini》and 极客《Java并发编程实战》</div>
 
         </div>
       </header>
@@ -262,24 +264,25 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="ubuntu上安装virtualenvwrapper"><a href="#ubuntu上安装virtualenvwrapper" class="headerlink" title="ubuntu上安装virtualenvwrapper"></a>ubuntu上安装virtualenvwrapper</h2><ol>
-<li><pre><code>mkdir $HOME/.virtualenvs
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">   创建虚拟环境目录</span><br><span class="line"></span><br><span class="line">2. 添加环境变量信息</span><br><span class="line"></span><br><span class="line">   修改 ~&#x2F;.bashrc文件</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-# virtualenv-wrapper path
-export WORKON_HOME=$HOME/.virtualenvs
-export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-export VIRTUALENVWRAPPER_VIRTUALENV=/usr/local/bin/virtualenv
-source /usr/local/bin/virtualenvwrapper.sh
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">但是VIRTUALENVWRAPPER_VIRTUALENV和virtualenvwrapper.sh需要自己去找在哪里：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-sudo find / -name &quot;virtualenv&quot;
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">   然后把路径替换掉就可以了</span><br><span class="line"></span><br><span class="line">3. 重新加载环境变量</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-source ~/.bashrc
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">1. 创建虚拟环境</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-mkvirtualenv -p python3 test
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">1. 激活虚拟环境</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-workon test</code></pre>
-</li>
-</ol>
+        <p>信号量和互斥锁最大的差别在于信号量允许多个线程进入临界区，这一特性可以用在一些池化机制上面。</p>
+<p>信号量一般包括：</p>
+<ul>
+<li>计数器</li>
+<li>init方法，初始化计时器</li>
+<li>up方法，计数器加一</li>
+<li>down方法，计数器减一</li>
+<li>等待队列。等待信号量的线程队列</li>
+</ul>
+<h3 id="信号量实现对象池"><a href="#信号量实现对象池" class="headerlink" title="信号量实现对象池"></a>信号量实现对象池</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ObjectPollOne</span>&lt;<span class="title">T</span>,<span class="title">R</span>&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">private</span> List&lt;T&gt; poll;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">private</span> Semaphore sem;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ObjectPollOne</span><span class="params">(<span class="keyword">int</span> size,T t)</span></span>&#123;</span><br><span class="line">        poll = <span class="keyword">new</span> Vector&lt;&gt;(size);</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;size;i++)&#123;</span><br><span class="line">            poll.add(t);</span><br><span class="line">        &#125;</span><br><span class="line">        sem = <span class="keyword">new</span> Semaphore(size);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> R <span class="title">exec</span><span class="params">(Function&lt;T,R&gt; function)</span> <span class="keyword">throws</span> InterruptedException</span>&#123;</span><br><span class="line">        T t =<span class="keyword">null</span>;</span><br><span class="line">        sem.acquire();</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            t = poll.remove(<span class="number">0</span>);</span><br><span class="line">            <span class="keyword">return</span> function.apply(t); <span class="comment">//t是function的参数</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">finally</span> &#123;</span><br><span class="line">            poll.add(t);</span><br><span class="line">            sem.release();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyThread</span> <span class="keyword">implements</span> <span class="title">Callable</span>&lt;<span class="title">String</span>&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">private</span> ObjectPollOne&lt;Integer,String&gt; objectPollOne;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyThread</span><span class="params">(ObjectPollOne&lt;Integer,String&gt; objectPollOne)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.objectPollOne = objectPollOne;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> objectPollOne.exec(t-&gt;&#123;</span><br><span class="line">            System.out.println(t);</span><br><span class="line">            System.out.println(Thread.currentThread().getName());</span><br><span class="line">            <span class="keyword">return</span> t.toString();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException</span>&#123;</span><br><span class="line">	<span class="comment">// write your code here</span></span><br><span class="line">        ObjectPollOne&lt;Integer,String&gt; objectPollOne = <span class="keyword">new</span> ObjectPollOne&lt;Integer,String&gt;(<span class="number">2</span>,<span class="number">10</span>);</span><br><span class="line">        FutureTask&lt;String&gt; futureTask1 = <span class="keyword">new</span> FutureTask&lt;&gt;(<span class="keyword">new</span> MyThread(objectPollOne));</span><br><span class="line">        FutureTask&lt;String&gt; futureTask2 = <span class="keyword">new</span> FutureTask&lt;&gt;(<span class="keyword">new</span> MyThread(objectPollOne));</span><br><span class="line">        FutureTask&lt;String&gt; futureTask3 = <span class="keyword">new</span> FutureTask&lt;&gt;(<span class="keyword">new</span> MyThread(objectPollOne));</span><br><span class="line">        <span class="keyword">new</span> Thread(futureTask1).start();</span><br><span class="line">        <span class="keyword">new</span> Thread(futureTask2).start();</span><br><span class="line">        <span class="keyword">new</span> Thread(futureTask3).start();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 调用futureTask的get能拿到返回的值</span></span><br><span class="line">            System.out.println(futureTask1.get());</span><br><span class="line">            System.out.println(futureTask2.get());</span><br><span class="line">            System.out.println(futureTask3.get());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ExecutionException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的lambda结合Function，因为exec接受一个函数对象作为参数，所以这里用了lambda表达式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">t-&gt;&#123;</span><br><span class="line">	System.out.println(t);</span><br><span class="line">	System.out.println(Thread.currentThread().getName());</span><br><span class="line">	<span class="keyword">return</span> t.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>就是一个t为参数的函数，而t就交给exec中去从对象池中获取了。</p>
 
     </div>
 
@@ -289,7 +292,8 @@ workon test</code></pre>
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/ubuntu/" rel="tag"># ubuntu</a>
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag"># 并发编程</a>
           </div>
 
         
@@ -298,13 +302,10 @@ workon test</code></pre>
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/10/05/%E4%B8%80%E6%AC%A1DDL%E8%A7%A6%E5%8F%91%E7%9A%84%E9%97%AE%E9%A2%98/" rel="prev" title="一次DDL触发的问题">
-      <i class="fa fa-chevron-left"></i> 一次DDL触发的问题
+    <a href="/2020/10/20/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E4%B8%89)%E2%80%94%E4%BA%8B%E4%BB%B6%E9%80%9A%E7%9F%A5/" rel="prev" title="Java并发编程(三)——事件通知">
+      <i class="fa fa-chevron-left"></i> Java并发编程(三)——事件通知
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2020/10/05/nohup%E5%9C%A8%E5%90%8E%E5%8F%B0%E8%B7%91%E8%84%9A%E6%9C%AC/" rel="next" title="nohup在后台跑脚本">
-      nohup在后台跑脚本 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -364,7 +365,7 @@ workon test</code></pre>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ubuntu%E4%B8%8A%E5%AE%89%E8%A3%85virtualenvwrapper"><span class="nav-number">1.</span> <span class="nav-text">ubuntu上安装virtualenvwrapper</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8F%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E6%B1%A0"><span class="nav-number">1.</span> <span class="nav-text">信号量实现对象池</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
