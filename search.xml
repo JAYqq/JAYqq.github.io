@@ -1794,7 +1794,7 @@ chmod 600 ~/.ssh/authorized_keys
       </tags>
   </entry>
   <entry>
-    <title>Java并发编程(三)——信号量</title>
+    <title>Java并发编程(四)——信号量</title>
     <url>/2020/10/23/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E5%9B%9B)%E2%80%94%E4%BF%A1%E5%8F%B7%E9%87%8F/</url>
     <content><![CDATA[<p>信号量和互斥锁最大的差别在于信号量允许多个线程进入临界区，这一特性可以用在一些池化机制上面。</p>
 <p>信号量一般包括：</p>
