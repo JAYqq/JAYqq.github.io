@@ -28,7 +28,7 @@
 <meta property="og:description" content="《Java并发编程艺术mini》and 极客《Java并发编程实战》">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-10-24T08:33:25.632Z">
-<meta property="article:modified_time" content="2020-10-24T08:57:08.058Z">
+<meta property="article:modified_time" content="2020-10-28T08:20:41.206Z">
 <meta property="article:author" content="Mason">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="并发编程">
@@ -217,10 +217,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2020-10-24 16:33:25 / Modified: 16:57:08" itemprop="dateCreated datePublished" datetime="2020-10-24T16:33:25+08:00">2020-10-24</time>
+              <time title="Created: 2020-10-24 16:33:25" itemprop="dateCreated datePublished" datetime="2020-10-24T16:33:25+08:00">2020-10-24</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-28 16:20:41" itemprop="dateModified" datetime="2020-10-28T16:20:41+08:00">2020-10-28</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -265,7 +271,7 @@
 
       
         <h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p><a target="_blank" rel="noopener" href="https://juejin.im/post/6844903601534418958">https://juejin.im/post/6844903601534418958</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/f584799f1c77%EF%BC%88%E5%85%AC%E5%B9%B3%E9%94%81%E5%92%8C%E9%9D%9E%E5%85%AC%E5%B9%B3%E9%94%81%EF%BC%89">https://www.jianshu.com/p/f584799f1c77（公平锁和非公平锁）</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/f584799f1c77">https://www.jianshu.com/p/f584799f1c77</a></p>
 <h2 id="What-is-AQS"><a href="#What-is-AQS" class="headerlink" title="What is AQS"></a>What is AQS</h2><p>全名AbstractQueuedSynchronizer，可以理解为实现锁的模板，AQS提供了一系列可以重写的方法去实现锁的各类功能。</p>
 <p><strong>锁是面向使用者，它定义了使用者与锁交互的接口，隐藏了实现细节；同步器是面向锁的实现者，它简化了锁的实现方式，屏蔽了同步状态的管理，线程的排队，等待和唤醒等底层操作</strong></p>
 <p>这段话看完后面代码后再回来看一眼</p>
@@ -304,7 +310,10 @@
     <a href="/2020/10/23/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E5%9B%9B)%E2%80%94%E4%BF%A1%E5%8F%B7%E9%87%8F/" rel="prev" title="Java并发编程基础(四)——信号量">
       <i class="fa fa-chevron-left"></i> Java并发编程基础(四)——信号量
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/28/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E5%88%9D%E8%AF%86%E8%AF%BB%E5%86%99%E9%94%81/" rel="next" title="Java并发编程：初识读写锁">
+      Java并发编程：初识读写锁 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -380,7 +389,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
