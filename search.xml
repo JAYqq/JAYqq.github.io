@@ -1906,4 +1906,89 @@ chmod 600 ~/.ssh/authorized_keys
         <tag>并发编程</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Java并发编程：比读写锁更快的StampedLock</title>
+    <url>/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/</url>
+    <content><![CDATA[<h2 id="Why-StampedLock"><a href="#Why-StampedLock" class="headerlink" title="Why StampedLock?"></a>Why StampedLock?</h2><p>读写锁已经在一定程度上对于读多写少的场景有了一定的并发优化，但是写锁的占用对于有读锁的存在的时候是被阻塞的，因此StampedLock提供了乐观读（无锁读）的方法，允许多个线程读的时候可以允许一个写线程占用写锁。</p>
+<h2 id="How-StampedLock-Work？"><a href="#How-StampedLock-Work？" class="headerlink" title="How StampedLock Work？"></a>How StampedLock Work？</h2><h3 id="Three-Lock-Modes-supported-by-Stampedlock"><a href="#Three-Lock-Modes-supported-by-Stampedlock" class="headerlink" title="Three Lock Modes supported by Stampedlock"></a>Three Lock Modes supported by Stampedlock</h3><h4 id="悲观读-写锁"><a href="#悲观读-写锁" class="headerlink" title="悲观读+写锁"></a>悲观读+写锁</h4><p>当StampedLock退化到这一步，其实就和原始的读写锁一样了</p>
+<ul>
+<li><pre><code class="java">class StampedLockTest&#123;
+    final static Logger log = Logger.getLogger(StampedLock.class.getName());
+    final static StampedLock lock = new StampedLock();
+    final static Map&lt;Integer,String&gt; hashMap = new HashMap&lt;Integer, String&gt;();
+    static &#123;
+        hashMap.put(1,&quot;Mason&quot;);
+        hashMap.put(2,&quot;Jam&quot;);
+    &#125;
+    public static String getInfo(int id) throws InterruptedException&#123;
+        /*
+        加读锁后sleep两秒
+        */
+        long stamp = lock.readLock();
+        log.info(Thread.currentThread().getName()+&quot; get ReadLock&quot;);
+        try&#123;
+            String name = hashMap.get(id);
+            log.info(Thread.currentThread().getName()+&quot; is blocking&quot;);
+            Thread.sleep(2000);
+            log.info(Thread.currentThread().getName()+&quot; awake&quot;);
+            return name;
+        &#125;finally &#123;
+            lock.unlockRead(stamp);
+        &#125;
+    &#125;
+    public static void putInfo(int id,String info)&#123;
+        long stamp = lock.writeLock();
+        log.info(Thread.currentThread().getName()+&quot; get WriteLock&quot;);
+        try&#123;
+            hashMap.put(id,info);
+        &#125;finally &#123;
+            lock.unlockWrite(stamp);
+        &#125;
+    &#125;
+&#125;
+public class Main &#123;
+
+    public static void main(String[] args) &#123;
+    /*
+    一个线程读一个线程写
+    */
+        new Thread(()-&gt;&#123;
+            for(int i=0 ;i&lt;10;i++)&#123;
+                try&#123;
+                    StampedLockTest.getInfo(1);
+                &#125;catch (InterruptedException e)&#123;
+                    e.printStackTrace();
+                &#125;
+            &#125;
+        &#125;).start();
+        new Thread(()-&gt;&#123;
+            for(int i=0;i&lt;10;i++)&#123;
+                StampedLockTest.putInfo(1,&quot;Test&quot;);
+            &#125;
+        &#125;).start();
+    &#125;
+&#125;
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">写线程在读线程阻塞期间无法占用锁。</span><br><span class="line"></span><br><span class="line">#### 乐观读+写锁</span><br><span class="line"></span><br><span class="line">乐观读tryOptimisticRead，是一个无锁操作，允许读的同时有一个写线程进行</span><br><span class="line"></span><br><span class="line">&#96;&#96;&#96;java</span><br><span class="line">class StampedLockTest&#123;</span><br><span class="line">    final static Logger log &#x3D; Logger.getLogger(StampedLock.class.getName());</span><br><span class="line">    final static StampedLock lock &#x3D; new StampedLock();</span><br><span class="line">    final static Map&lt;Integer,String&gt; hashMap &#x3D; new HashMap&lt;Integer, String&gt;();</span><br><span class="line">    static &#123;</span><br><span class="line">        hashMap.put(1,&quot;Mason&quot;);</span><br><span class="line">        hashMap.put(2,&quot;Jam&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public static String getInfo2(int id) throws InterruptedException&#123;</span><br><span class="line">        long stamp &#x3D; lock.tryOptimisticRead(); &#x2F;&#x2F;乐观读</span><br><span class="line">        String name &#x3D; hashMap.get(id);</span><br><span class="line">        log.info(Thread.currentThread().getName()+&quot; is blocking&quot;);</span><br><span class="line">        Thread.sleep(2000);</span><br><span class="line">        log.info(Thread.currentThread().getName()+&quot; awake&quot;);</span><br><span class="line">        if(!lock.validate(stamp))&#123; &#x2F;&#x2F;再次检查blocking期间是否有写线程修改</span><br><span class="line">            stamp&#x3D;lock.readLock(); &#x2F;&#x2F;升级为读锁</span><br><span class="line">            try&#123;</span><br><span class="line">                name &#x3D; hashMap.get(id);</span><br><span class="line">            &#125;finally &#123;</span><br><span class="line">                lock.unlockRead(stamp);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line">    public static void putInfo(int id,String info)&#123;</span><br><span class="line">        long stamp &#x3D; lock.writeLock();</span><br><span class="line">        log.info(Thread.currentThread().getName()+&quot; get WriteLock&quot;);</span><br><span class="line">        try&#123;</span><br><span class="line">            hashMap.put(id,info);</span><br><span class="line">        &#125;finally &#123;</span><br><span class="line">            lock.unlockWrite(stamp);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">public class Main &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">	&#x2F;&#x2F; write your code here</span><br><span class="line">        new Thread(()-&gt;&#123;</span><br><span class="line">            for(int i&#x3D;0 ;i&lt;10;i++)&#123;</span><br><span class="line">                try&#123;</span><br><span class="line">                    String info &#x3D; StampedLockTest.getInfo2(1);</span><br><span class="line">                    System.out.println(&quot;Get Info:&quot;+info);</span><br><span class="line">                &#125;catch (InterruptedException e)&#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">        new Thread(()-&gt;&#123;</span><br><span class="line">            for(int i&#x3D;0;i&lt;10;i++)&#123;</span><br><span class="line">                StampedLockTest.putInfo(1,&quot;Test&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</code></pre>
+</li>
+</ul>
+<p>发现读线程blocking期间写线程依旧能进行。</p>
+<h2 id="More-About-“tryOptimisticRead”"><a href="#More-About-“tryOptimisticRead”" class="headerlink" title="More About “tryOptimisticRead”"></a>More About “tryOptimisticRead”</h2><p>极客专栏老师也有写到乐观锁在数据库中也有涉及，我也是有接触到过数据库中乐观读，主要是为表提供一个version列，每次读取数据的时候查也取出该行数据的version字段值，后面如果有依赖这行数据的其他数据需要写入的时候再次查看一下该行数据的version是否被其他线程给修改了，再进行数据的更新。</p>
+<p>其实这边的version可以理解为上面代码中的stamp，都是用来表示数据是否被修改。</p>
+<h2 id="Template"><a href="#Template" class="headerlink" title="Template"></a>Template</h2><p>乐观读模板</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">final</span> StampedLock sl = </span><br><span class="line">  <span class="keyword">new</span> StampedLock();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 乐观读</span></span><br><span class="line"><span class="keyword">long</span> stamp = </span><br><span class="line">  sl.tryOptimisticRead();</span><br><span class="line"><span class="comment">// 读入方法局部变量</span></span><br><span class="line">......</span><br><span class="line"><span class="comment">// 校验stamp</span></span><br><span class="line"><span class="keyword">if</span> (!sl.validate(stamp))&#123;</span><br><span class="line">  <span class="comment">// 升级为悲观读锁</span></span><br><span class="line">  stamp = sl.readLock();</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 读入方法局部变量</span></span><br><span class="line">    .....</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">//释放悲观读锁</span></span><br><span class="line">    sl.unlockRead(stamp);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//使用方法局部变量执行业务操作</span></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>写模板</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">long</span> stamp = sl.writeLock();</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">// 写共享变量</span></span><br><span class="line">  ......</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  sl.unlockWrite(stamp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>并发编程</tag>
+      </tags>
+  </entry>
 </search>

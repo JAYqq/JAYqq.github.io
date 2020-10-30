@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icon.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="《Java并发编程艺术mini》——并发编程基础、极客《Java并发编程实战》记录">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java并发编程：比读写锁更快的StampedLock">
+<meta property="og:url" content="http://example.com/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/index.html">
+<meta property="og:site_name" content="Mason&#39;s Blog">
+<meta property="og:description" content="《Java并发编程艺术mini》——并发编程基础、极客《Java并发编程实战》记录">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-10-30T01:38:14.959Z">
+<meta property="article:modified_time" content="2020-10-30T13:04:27.058Z">
+<meta property="article:author" content="Mason">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Java并发编程：比读写锁更快的StampedLock | Mason's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Mason's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Mason">
+      <meta itemprop="description" content="Talk is cheap,show me the code">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mason's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java并发编程：比读写锁更快的StampedLock
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-10-30 09:38:14 / Modified: 21:04:27" itemprop="dateCreated datePublished" datetime="2020-10-30T09:38:14+08:00">2020-10-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/" class="post-meta-item leancloud_visitors" data-flag-title="Java并发编程：比读写锁更快的StampedLock" title="Views">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+            <div class="post-description">《Java并发编程艺术mini》——并发编程基础、极客《Java并发编程实战》记录</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Why-StampedLock"><a href="#Why-StampedLock" class="headerlink" title="Why StampedLock?"></a>Why StampedLock?</h2><p>读写锁已经在一定程度上对于读多写少的场景有了一定的并发优化，但是写锁的占用对于有读锁的存在的时候是被阻塞的，因此StampedLock提供了乐观读（无锁读）的方法，允许多个线程读的时候可以允许一个写线程占用写锁。</p>
+<h2 id="How-StampedLock-Work？"><a href="#How-StampedLock-Work？" class="headerlink" title="How StampedLock Work？"></a>How StampedLock Work？</h2><h3 id="Three-Lock-Modes-supported-by-Stampedlock"><a href="#Three-Lock-Modes-supported-by-Stampedlock" class="headerlink" title="Three Lock Modes supported by Stampedlock"></a>Three Lock Modes supported by Stampedlock</h3><h4 id="悲观读-写锁"><a href="#悲观读-写锁" class="headerlink" title="悲观读+写锁"></a>悲观读+写锁</h4><p>当StampedLock退化到这一步，其实就和原始的读写锁一样了</p>
+<ul>
+<li><pre><code class="java">class StampedLockTest&#123;
+    final static Logger log = Logger.getLogger(StampedLock.class.getName());
+    final static StampedLock lock = new StampedLock();
+    final static Map&lt;Integer,String&gt; hashMap = new HashMap&lt;Integer, String&gt;();
+    static &#123;
+        hashMap.put(1,&quot;Mason&quot;);
+        hashMap.put(2,&quot;Jam&quot;);
+    &#125;
+    public static String getInfo(int id) throws InterruptedException&#123;
+        /*
+        加读锁后sleep两秒
+        */
+        long stamp = lock.readLock();
+        log.info(Thread.currentThread().getName()+&quot; get ReadLock&quot;);
+        try&#123;
+            String name = hashMap.get(id);
+            log.info(Thread.currentThread().getName()+&quot; is blocking&quot;);
+            Thread.sleep(2000);
+            log.info(Thread.currentThread().getName()+&quot; awake&quot;);
+            return name;
+        &#125;finally &#123;
+            lock.unlockRead(stamp);
+        &#125;
+    &#125;
+    public static void putInfo(int id,String info)&#123;
+        long stamp = lock.writeLock();
+        log.info(Thread.currentThread().getName()+&quot; get WriteLock&quot;);
+        try&#123;
+            hashMap.put(id,info);
+        &#125;finally &#123;
+            lock.unlockWrite(stamp);
+        &#125;
+    &#125;
+&#125;
+public class Main &#123;
+
+    public static void main(String[] args) &#123;
+    /*
+    一个线程读一个线程写
+    */
+        new Thread(()-&gt;&#123;
+            for(int i=0 ;i&lt;10;i++)&#123;
+                try&#123;
+                    StampedLockTest.getInfo(1);
+                &#125;catch (InterruptedException e)&#123;
+                    e.printStackTrace();
+                &#125;
+            &#125;
+        &#125;).start();
+        new Thread(()-&gt;&#123;
+            for(int i=0;i&lt;10;i++)&#123;
+                StampedLockTest.putInfo(1,&quot;Test&quot;);
+            &#125;
+        &#125;).start();
+    &#125;
+&#125;
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">写线程在读线程阻塞期间无法占用锁。</span><br><span class="line"></span><br><span class="line">#### 乐观读+写锁</span><br><span class="line"></span><br><span class="line">乐观读tryOptimisticRead，是一个无锁操作，允许读的同时有一个写线程进行</span><br><span class="line"></span><br><span class="line">&#96;&#96;&#96;java</span><br><span class="line">class StampedLockTest&#123;</span><br><span class="line">    final static Logger log &#x3D; Logger.getLogger(StampedLock.class.getName());</span><br><span class="line">    final static StampedLock lock &#x3D; new StampedLock();</span><br><span class="line">    final static Map&lt;Integer,String&gt; hashMap &#x3D; new HashMap&lt;Integer, String&gt;();</span><br><span class="line">    static &#123;</span><br><span class="line">        hashMap.put(1,&quot;Mason&quot;);</span><br><span class="line">        hashMap.put(2,&quot;Jam&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public static String getInfo2(int id) throws InterruptedException&#123;</span><br><span class="line">        long stamp &#x3D; lock.tryOptimisticRead(); &#x2F;&#x2F;乐观读</span><br><span class="line">        String name &#x3D; hashMap.get(id);</span><br><span class="line">        log.info(Thread.currentThread().getName()+&quot; is blocking&quot;);</span><br><span class="line">        Thread.sleep(2000);</span><br><span class="line">        log.info(Thread.currentThread().getName()+&quot; awake&quot;);</span><br><span class="line">        if(!lock.validate(stamp))&#123; &#x2F;&#x2F;再次检查blocking期间是否有写线程修改</span><br><span class="line">            stamp&#x3D;lock.readLock(); &#x2F;&#x2F;升级为读锁</span><br><span class="line">            try&#123;</span><br><span class="line">                name &#x3D; hashMap.get(id);</span><br><span class="line">            &#125;finally &#123;</span><br><span class="line">                lock.unlockRead(stamp);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return name;</span><br><span class="line">    &#125;</span><br><span class="line">    public static void putInfo(int id,String info)&#123;</span><br><span class="line">        long stamp &#x3D; lock.writeLock();</span><br><span class="line">        log.info(Thread.currentThread().getName()+&quot; get WriteLock&quot;);</span><br><span class="line">        try&#123;</span><br><span class="line">            hashMap.put(id,info);</span><br><span class="line">        &#125;finally &#123;</span><br><span class="line">            lock.unlockWrite(stamp);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">public class Main &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">	&#x2F;&#x2F; write your code here</span><br><span class="line">        new Thread(()-&gt;&#123;</span><br><span class="line">            for(int i&#x3D;0 ;i&lt;10;i++)&#123;</span><br><span class="line">                try&#123;</span><br><span class="line">                    String info &#x3D; StampedLockTest.getInfo2(1);</span><br><span class="line">                    System.out.println(&quot;Get Info:&quot;+info);</span><br><span class="line">                &#125;catch (InterruptedException e)&#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">        new Thread(()-&gt;&#123;</span><br><span class="line">            for(int i&#x3D;0;i&lt;10;i++)&#123;</span><br><span class="line">                StampedLockTest.putInfo(1,&quot;Test&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</code></pre>
+</li>
+</ul>
+<p>发现读线程blocking期间写线程依旧能进行。</p>
+<h2 id="More-About-“tryOptimisticRead”"><a href="#More-About-“tryOptimisticRead”" class="headerlink" title="More About “tryOptimisticRead”"></a>More About “tryOptimisticRead”</h2><p>极客专栏老师也有写到乐观锁在数据库中也有涉及，我也是有接触到过数据库中乐观读，主要是为表提供一个version列，每次读取数据的时候查也取出该行数据的version字段值，后面如果有依赖这行数据的其他数据需要写入的时候再次查看一下该行数据的version是否被其他线程给修改了，再进行数据的更新。</p>
+<p>其实这边的version可以理解为上面代码中的stamp，都是用来表示数据是否被修改。</p>
+<h2 id="Template"><a href="#Template" class="headerlink" title="Template"></a>Template</h2><p>乐观读模板</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">final</span> StampedLock sl = </span><br><span class="line">  <span class="keyword">new</span> StampedLock();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 乐观读</span></span><br><span class="line"><span class="keyword">long</span> stamp = </span><br><span class="line">  sl.tryOptimisticRead();</span><br><span class="line"><span class="comment">// 读入方法局部变量</span></span><br><span class="line">......</span><br><span class="line"><span class="comment">// 校验stamp</span></span><br><span class="line"><span class="keyword">if</span> (!sl.validate(stamp))&#123;</span><br><span class="line">  <span class="comment">// 升级为悲观读锁</span></span><br><span class="line">  stamp = sl.readLock();</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 读入方法局部变量</span></span><br><span class="line">    .....</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">//释放悲观读锁</span></span><br><span class="line">    sl.unlockRead(stamp);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//使用方法局部变量执行业务操作</span></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>写模板</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">long</span> stamp = sl.writeLock();</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">// 写共享变量</span></span><br><span class="line">  ......</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  sl.unlockWrite(stamp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag"># 并发编程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/28/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E5%88%9D%E8%AF%86%E8%AF%BB%E5%86%99%E9%94%81/" rel="prev" title="Java并发编程：初识读写锁">
+      <i class="fa fa-chevron-left"></i> Java并发编程：初识读写锁
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-StampedLock"><span class="nav-number">1.</span> <span class="nav-text">Why StampedLock?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-StampedLock-Work%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">How StampedLock Work？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Three-Lock-Modes-supported-by-Stampedlock"><span class="nav-number">2.1.</span> <span class="nav-text">Three Lock Modes supported by Stampedlock</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%82%B2%E8%A7%82%E8%AF%BB-%E5%86%99%E9%94%81"><span class="nav-number">2.1.1.</span> <span class="nav-text">悲观读+写锁</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#More-About-%E2%80%9CtryOptimisticRead%E2%80%9D"><span class="nav-number">3.</span> <span class="nav-text">More About “tryOptimisticRead”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Template"><span class="nav-number">4.</span> <span class="nav-text">Template</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Mason"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Mason</p>
+  <div class="site-description" itemprop="description">Talk is cheap,show me the code</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/JAYqq" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;JAYqq" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:scwsugela@gmail.com" title="E-Mail → mailto:scwsugela@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://instagram.com/panderq8" title="Instagram → https:&#x2F;&#x2F;instagram.com&#x2F;panderq8" rel="noopener" target="_blank"><i class="fab fa-instagram fa-fw"></i>Instagram</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+	<span><br></span>	
+
+	<span class="post-meta-item-icon">
+	      <i class="fa fa-group"></i>
+	</span>
+	<span>总访客&nbsp<span id="busuanzi_value_site_uv"></span>&nbsp人</span>
+    	<span class="post-meta-divider">|</span>
+	<span class="post-meta-item-icon">
+	      <i class="fa fa-eye"></i>
+	</span>
+    	<span>访问总量&nbsp<span id="busuanzi_value_site_pv"></span>&nbsp次</span>
+
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'JenrkbLg10hbBvxnn0W6f4ii-gzGzoHsz',
+      appKey     : 'gzzr0iqoBxqRHxXhaaozRcdJ',
+      placeholder: "Mason邀请你评论，冲冲冲",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
