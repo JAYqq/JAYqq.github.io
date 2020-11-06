@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icon.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="《Java并发编程艺术mini》——并发编程基础、极客《Java并发编程实战》记录">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java并发编程：原子类中的无锁设计">
+<meta property="og:url" content="http://example.com/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/index.html">
+<meta property="og:site_name" content="Mason&#39;s Blog">
+<meta property="og:description" content="《Java并发编程艺术mini》——并发编程基础、极客《Java并发编程实战》记录">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2020/11/06/Li21fZn7Wb9Vh5B.png">
+<meta property="article:published_time" content="2020-11-05T07:59:57.484Z">
+<meta property="article:modified_time" content="2020-11-06T02:26:34.887Z">
+<meta property="article:author" content="Mason">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2020/11/06/Li21fZn7Wb9Vh5B.png">
+
+<link rel="canonical" href="http://example.com/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Java并发编程：原子类中的无锁设计 | Mason's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Mason's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Mason">
+      <meta itemprop="description" content="Talk is cheap,show me the code">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mason's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java并发编程：原子类中的无锁设计
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-11-05 15:59:57" itemprop="dateCreated datePublished" datetime="2020-11-05T15:59:57+08:00">2020-11-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-11-06 10:26:34" itemprop="dateModified" datetime="2020-11-06T10:26:34+08:00">2020-11-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/" class="post-meta-item leancloud_visitors" data-flag-title="Java并发编程：原子类中的无锁设计" title="Views">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+            <div class="post-description">《Java并发编程艺术mini》——并发编程基础、极客《Java并发编程实战》记录</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>根据极客专栏老师的总结，并发问题归根到底是可见性、原子性、有效性的问题，其中可见性是由于存在CPU缓存，原子性往往是由于多核时代导致在多个指令之间去发生线程的切换。</p>
+<p>针对原子性，我们的方案中最重要的就是锁，Java特有的synchronized、互斥锁、读写锁、StampedLock等等，由于锁的等待会出现阻塞，所以有Condition；由于锁可能需要被多个线程占用，出现了Semaphore。</p>
+<p>但是锁就涉及到加锁和解锁，本身这两个操作就会耗费一些CPU性能，况且可能还会出现锁等待导致线程的切换，这也是一种消耗。因此无锁方案就出现了。</p>
+<h2 id="What’s-the-problem-of-function-addOne"><a href="#What’s-the-problem-of-function-addOne" class="headerlink" title="What’s the problem of  function addOne?"></a>What’s the problem of  function addOne?</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*Test10-CAS*/</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SimpleCas</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> count =<span class="number">0</span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addOne</span><span class="params">()</span></span>&#123;</span><br><span class="line">        count += <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getCount</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.count;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当我们两个线程同时去执行的时候，比如说：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Thread thread1 = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> num = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>(num&lt;<span class="number">1000</span>)&#123;</span><br><span class="line">            <span class="keyword">try</span>&#123;</span><br><span class="line">                simpleCas.addOne();</span><br><span class="line">                num++;</span><br><span class="line">                Thread.sleep(<span class="number">3</span>);</span><br><span class="line">            &#125;<span class="keyword">catch</span> (InterruptedException e)&#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>两个线程我们希望是结果是2000，但是结果并不如意，<strong>原因就是可见性和原子性的问题</strong>。如果我们采用锁+volatile的方案，那么就是：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SimpleCas</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">int</span> count =<span class="number">0</span>;</span><br><span class="line">    <span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">addOne</span><span class="params">()</span></span>&#123;</span><br><span class="line">        count += <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getCount</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.count;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="How-CAS-Work"><a href="#How-CAS-Work" class="headerlink" title="How CAS Work?"></a>How CAS Work?</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SimpleCas</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">int</span> count =<span class="number">0</span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addOne</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> newval;</span><br><span class="line">        <span class="keyword">do</span> &#123;  </span><br><span class="line">            newval = count+<span class="number">1</span>; <span class="comment">//①</span></span><br><span class="line">        &#125;<span class="keyword">while</span> (count!=cas(count,newval));  <span class="comment">//②</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getCount</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.count;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">synchronized</span> <span class="keyword">int</span> <span class="title">cas</span><span class="params">(<span class="keyword">int</span> expect,<span class="keyword">int</span> newnum)</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> curval = count; <span class="comment">//先获取当前的count</span></span><br><span class="line">        <span class="keyword">if</span>(count==expect)&#123;  <span class="comment">//如果当前的count和期待值相同，说明count无变化</span></span><br><span class="line">            count=newnum;   <span class="comment">//更新count</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> curval;  <span class="comment">//返回更新前的count</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="Why-shoule-if"><a href="#Why-shoule-if" class="headerlink" title="Why shoule if?"></a>Why shoule if?</h3><p>为什么要判断一下count和expect？因为如果线程A执行到①后，线程B执行到②完成CAS更新了count，那么此时的count就和expect不等了，<strong>所以if是为了防止①和②之间有其他线程修改count</strong></p>
+<h3 id="ABA-Ploblem"><a href="#ABA-Ploblem" class="headerlink" title="ABA Ploblem"></a>ABA Ploblem</h3><p>如果 cas(count,newValue) 返回的值等于count，是否就能够认为 count 的值没有被其他线程更新过呢？显然不是的，假设 count 原本是 A，线程 T1 在执行完代码①处之后，执行代码②处之前，有可能 count 被线程 T2 更新成了 B，之后又被 T3 更新回了 A，这样线程 T1 虽然看到的一直是 A，但是其实已经被其他线程更新过了，这就是 ABA 问题、</p>
+<h4 id="How-to-solve-ABA-ploblem"><a href="#How-to-solve-ABA-ploblem" class="headerlink" title="How to solve ABA ploblem?"></a>How to solve ABA ploblem?</h4><p>自己动手解决的话，可以想到乐观锁（数据库的乐观锁或者StampedLock），只要维护一个version，每次更新数据的时候也把这个version自增，这样判断的时候判断一下version就知道中间有没有线程改变他了。</p>
+<p>在java中，可以使用AtomicStampedReference 和 AtomicMarkableReference，利用它们可以实现对象引用的原子化更新。</p>
+<p>AtomicStampedReference 实现的 CAS 方法就增加了版本号参数，方法签名如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">compareAndSet</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  V expectedReference,</span></span></span><br><span class="line"><span class="function"><span class="params">  V newReference,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">int</span> expectedStamp,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">int</span> newStamp)</span> </span></span><br></pre></td></tr></table></figure>
+
+<p>AtomicMarkableReference 的实现机制则更简单，将版本号简化成了一个 Boolean 值，方法签名如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">compareAndSet</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  V expectedReference,</span></span></span><br><span class="line"><span class="function"><span class="params">  V newReference,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">boolean</span> expectedMark,</span></span></span><br><span class="line"><span class="function"><span class="params">  <span class="keyword">boolean</span> newMark)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>我们使用AtomicStampedReference尝试解决一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*Test10-CAS*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> AtomicInteger atomicInt = <span class="keyword">new</span> AtomicInteger(<span class="number">100</span>);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> AtomicStampedReference atomicStampedRef = <span class="keyword">new</span> AtomicStampedReference(<span class="number">100</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        Thread intT1 = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                atomicInt.compareAndSet(<span class="number">100</span>, <span class="number">101</span>);</span><br><span class="line">                atomicInt.compareAndSet(<span class="number">101</span>, <span class="number">100</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        Thread intT2 = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    TimeUnit.SECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">boolean</span> c3 = atomicInt.compareAndSet(<span class="number">100</span>, <span class="number">101</span>);</span><br><span class="line">                System.out.println(c3); <span class="comment">// true</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        intT1.start();</span><br><span class="line">        intT2.start();</span><br><span class="line">        intT1.join();</span><br><span class="line">        intT2.join();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/*下面使用atomicStampedRef*/</span></span><br><span class="line">        Thread refT1 = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    TimeUnit.SECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                &#125;</span><br><span class="line">                atomicStampedRef.compareAndSet(<span class="number">100</span>, <span class="number">101</span>, atomicStampedRef.getStamp(), atomicStampedRef.getStamp() + <span class="number">1</span>);</span><br><span class="line">                atomicStampedRef.compareAndSet(<span class="number">101</span>, <span class="number">100</span>, atomicStampedRef.getStamp(), atomicStampedRef.getStamp() + <span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        Thread refT2 = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">int</span> stamp = atomicStampedRef.getStamp();</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    TimeUnit.SECONDS.sleep(<span class="number">2</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">boolean</span> c3 = atomicStampedRef.compareAndSet(<span class="number">100</span>, <span class="number">101</span>, stamp, stamp + <span class="number">1</span>);</span><br><span class="line">                System.out.println(c3); <span class="comment">// false</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        refT1.start();</span><br><span class="line">        refT2.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">打印结果是：</span></span><br><span class="line"><span class="comment">true</span></span><br><span class="line"><span class="comment">false</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看出AtomicStampedRef根据state状态值检测到了有线程进行了数据的修改。</p>
+<h2 id="How-java-use-CAS"><a href="#How-java-use-CAS" class="headerlink" title="How java use CAS?"></a>How java use CAS?</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SimpleCas</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> AtomicLong count = <span class="keyword">new</span> AtomicLong(<span class="number">0</span>);</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addOne</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> idx = <span class="number">0</span>;</span><br><span class="line">        count.getAndIncrement();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> AtomicLong <span class="title">getCount</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> count;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>java基于CAS又抽象出了原子类，这里的AtomicLong就是原子类，它利用了CAS的特性保证了count+=1这个步骤的原子性。</p>
+<p>上面只是其中一种原子类，以下是Java原子类的集合（引用自极客专栏《Java并发编程实战》）</p>
+<p><img src="https://i.loli.net/2020/11/06/Li21fZn7Wb9Vh5B.png"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag"># 并发编程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/31/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%90%8C%E6%AD%A5%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9ACountDownLatch%20%E5%92%8C%20CyclicBarrier/" rel="prev" title="Java并发编程—同步工具类：CountDownLatch 和 CyclicBarrier">
+      <i class="fa fa-chevron-left"></i> Java并发编程—同步工具类：CountDownLatch 和 CyclicBarrier
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#What%E2%80%99s-the-problem-of-function-addOne"><span class="nav-number">1.</span> <span class="nav-text">What’s the problem of  function addOne?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-CAS-Work"><span class="nav-number">2.</span> <span class="nav-text">How CAS Work?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Why-shoule-if"><span class="nav-number">2.1.</span> <span class="nav-text">Why shoule if?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ABA-Ploblem"><span class="nav-number">2.2.</span> <span class="nav-text">ABA Ploblem</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-solve-ABA-ploblem"><span class="nav-number">2.2.1.</span> <span class="nav-text">How to solve ABA ploblem?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-java-use-CAS"><span class="nav-number">3.</span> <span class="nav-text">How java use CAS?</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Mason"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Mason</p>
+  <div class="site-description" itemprop="description">Talk is cheap,show me the code</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">50</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/JAYqq" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;JAYqq" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:scwsugela@gmail.com" title="E-Mail → mailto:scwsugela@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://instagram.com/panderq8" title="Instagram → https:&#x2F;&#x2F;instagram.com&#x2F;panderq8" rel="noopener" target="_blank"><i class="fab fa-instagram fa-fw"></i>Instagram</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+	<span><br></span>	
+    	<span class="post-meta-divider">|</span>
+	<span class="post-meta-item-icon">
+	      <i class="fa fa-eye"></i>
+	</span>
+    	<span>访问总量&nbsp<span id="busuanzi_value_site_pv"></span>&nbsp次</span>
+
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'JenrkbLg10hbBvxnn0W6f4ii-gzGzoHsz',
+      appKey     : 'gzzr0iqoBxqRHxXhaaozRcdJ',
+      placeholder: "Mason邀请你评论，冲冲冲",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
