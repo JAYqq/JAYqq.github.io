@@ -28,7 +28,7 @@
 <meta property="og:description" content="《Java并发编程艺术mini》——并发编程基础、极客《Java并发编程实战》记录">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-10-15T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-11-14T02:06:35.515Z">
+<meta property="article:modified_time" content="2020-11-14T13:13:12.321Z">
 <meta property="article:author" content="Mason">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="并发编程">
@@ -225,7 +225,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-11-14 10:06:35" itemprop="dateModified" datetime="2020-11-14T10:06:35+08:00">2020-11-14</time>
+                <time title="Modified: 2020-11-14 21:13:12" itemprop="dateModified" datetime="2020-11-14T21:13:12+08:00">2020-11-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -276,7 +276,7 @@
 <ul>
 <li>Thread+Runnable（最普通的方式）</li>
 <li><a target="_blank" rel="noopener" href="https://yibingxiong.gitbook.io/java-concurrent-programming-art-mini/di-02-zhang-bing-fa-bian-cheng-ji-chu/02-chuang-jian-xian-cheng-de-san-zhong-fang-shi">Callable+Future</a>（带返回值）</li>
-<li>FutureTask</li>
+<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/11/14/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9AFuture%E5%92%8CFutureTask/">FutureTask</a>（可获得线程返回值，为异步铺路）</li>
 <li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/11/09/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%88%9D%E6%8E%A2/">ThreadPoolExecutor</a>（线程池）</li>
 </ul>
 <h3 id="同步（协作）"><a href="#同步（协作）" class="headerlink" title="同步（协作）"></a>同步（协作）</h3><p>并发世界的同步其实就是线程之间的协作，当不同线程分工后，它们执行的不同任务之间一定有一些依赖关系存在。</p>
@@ -290,10 +290,10 @@
 <h3 id="互斥"><a href="#互斥" class="headerlink" title="互斥"></a>互斥</h3><p>其实分工和同步可以说是在大部分场景下都是同时存在的，因为他们的目的是为了让程序的执行效率更高。而互斥，就是在高效率路上的阻碍，互斥要求的是 <strong>同一时刻只能有一个线程去访问共享变量</strong>。最常见的做法就是锁，但是锁的颗粒度太大会出现性能问题，大量线程等待；锁的颗粒度太小，会出现死锁。针对读多写少的场景，还有读写锁的优化，另外还有无锁化、CAS等技术。</p>
 <ul>
 <li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/24/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E2%80%94%E9%94%81%EF%BC%88%E4%B8%80%EF%BC%89/">AQS（锁的模板）</a></li>
-<li>ReentrantLock</li>
-<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/28/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E5%88%9D%E8%AF%86%E8%AF%BB%E5%86%99%E9%94%81/">ReentrantReadWriteLock</a></li>
-<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/">StampedLock</a></li>
-<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/">CAS</a></li>
+<li>ReentrantLock（可重入锁，互斥锁）</li>
+<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/28/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E5%88%9D%E8%AF%86%E8%AF%BB%E5%86%99%E9%94%81/">ReentrantReadWriteLock</a>（可重入读写锁，适合读多写少的场景，读锁乐观锁）</li>
+<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/">StampedLock</a>（读锁是乐观读，允许读的同时有一个写线程运行，如果前后两次读数据不同，就升级到读锁，阻塞写线程保证数据安全）</li>
+<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/">CAS</a>（无锁，乐观读的内部实现）</li>
 </ul>
 <h2 id="并发问题的三大源头"><a href="#并发问题的三大源头" class="headerlink" title="并发问题的三大源头"></a>并发问题的三大源头</h2><h3 id="缓存导致的可见性问题"><a href="#缓存导致的可见性问题" class="headerlink" title="缓存导致的可见性问题"></a>缓存导致的可见性问题</h3><p>多核时代，由于每个CPU都有自己的缓存机制，当CPU把数据从内存中读到自己的缓存中后，可能此时数据已经被另一线程所修改了，所以导致这个线程对修改的新数据不可见。</p>
 <h3 id="线程切换导致的原子性问题"><a href="#线程切换导致的原子性问题" class="headerlink" title="线程切换导致的原子性问题"></a>线程切换导致的原子性问题</h3><p>在时间片式的CPU执行时代，线程切换主要发生在：</p>
