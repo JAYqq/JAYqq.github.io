@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icon.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="廖神的Java基础 and 极客《Java并发编程实战》">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java并发编程：CompletableFuture让异步更纯粹（二）">
+<meta property="og:url" content="http://example.com/2020/11/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9ACompletableFuture%E8%AE%A9%E5%BC%82%E6%AD%A5%E6%9B%B4%E7%BA%AF%E7%B2%B9%EF%BC%88%E4%BA%8C%EF%BC%89/index.html">
+<meta property="og:site_name" content="Mason&#39;s Blog">
+<meta property="og:description" content="廖神的Java基础 and 极客《Java并发编程实战》">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-11-16T08:50:18.943Z">
+<meta property="article:modified_time" content="2020-11-16T09:56:29.842Z">
+<meta property="article:author" content="Mason">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2020/11/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9ACompletableFuture%E8%AE%A9%E5%BC%82%E6%AD%A5%E6%9B%B4%E7%BA%AF%E7%B2%B9%EF%BC%88%E4%BA%8C%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Java并发编程：CompletableFuture让异步更纯粹（二） | Mason's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Mason's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9ACompletableFuture%E8%AE%A9%E5%BC%82%E6%AD%A5%E6%9B%B4%E7%BA%AF%E7%B2%B9%EF%BC%88%E4%BA%8C%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Mason">
+      <meta itemprop="description" content="Talk is cheap,show me the code">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mason's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java并发编程：CompletableFuture让异步更纯粹（二）
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-11-16 16:50:18 / Modified: 17:56:29" itemprop="dateCreated datePublished" datetime="2020-11-16T16:50:18+08:00">2020-11-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/11/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9ACompletableFuture%E8%AE%A9%E5%BC%82%E6%AD%A5%E6%9B%B4%E7%BA%AF%E7%B2%B9%EF%BC%88%E4%BA%8C%EF%BC%89/" class="post-meta-item leancloud_visitors" data-flag-title="Java并发编程：CompletableFuture让异步更纯粹（二）" title="Views">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2020/11/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9ACompletableFuture%E8%AE%A9%E5%BC%82%E6%AD%A5%E6%9B%B4%E7%BA%AF%E7%B2%B9%EF%BC%88%E4%BA%8C%EF%BC%89/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/11/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9ACompletableFuture%E8%AE%A9%E5%BC%82%E6%AD%A5%E6%9B%B4%E7%BA%AF%E7%B2%B9%EF%BC%88%E4%BA%8C%EF%BC%89/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+            <div class="post-description">廖神的Java基础 and 极客《Java并发编程实战》</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>上一讲：<a target="_blank" rel="noopener" href="http://scwmason.cn/2020/11/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9ACompletableFuture%E8%AE%A9%E5%BC%82%E6%AD%A5%E6%9B%B4%E7%BA%AF%E7%B2%B9/">Java并发编程：CompletableFuture让异步更纯粹（一）</a></p>
+<h2 id="如何理解CompletableFuture的流程控制"><a href="#如何理解CompletableFuture的流程控制" class="headerlink" title="如何理解CompletableFuture的流程控制"></a>如何理解CompletableFuture的流程控制</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompletableFuture</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">Future</span>&lt;<span class="title">T</span>&gt;, <span class="title">CompletionStage</span>&lt;<span class="title">T</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>CompletionFuture是继承自CompletionStage，这个接口中有40多个方法，专栏老师很好的总结了一下（第24章），这边汇总成表格形式</p>
+<table>
+<thead>
+<tr>
+<th>串行关系</th>
+<th>AND汇聚关系</th>
+<th>OR汇汇聚关系</th>
+<th>异常处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>thenApply</td>
+<td>thenCombine</td>
+<td>applyToEither</td>
+<td>exceptionally</td>
+</tr>
+<tr>
+<td>thenAccept</td>
+<td>thenAcceptBoth</td>
+<td>acceptEither</td>
+<td>whenComplete</td>
+</tr>
+<tr>
+<td>thenRun</td>
+<td>runAfterBoth</td>
+<td>runAfterEither</td>
+<td>handle</td>
+</tr>
+<tr>
+<td></td>
+<td>thenCompose</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h3 id="串行关系"><a href="#串行关系" class="headerlink" title="串行关系"></a>串行关系</h3><table>
+<thead>
+<tr>
+<th align="left">相关函数</th>
+<th align="left">是否可获得前一个任务的返回值(是否接受参数)</th>
+<th align="left">是否有返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>thenApply</code>类</td>
+<td align="left">能</td>
+<td align="left">有</td>
+</tr>
+<tr>
+<td align="left"><code>thenAccept</code>类</td>
+<td align="left">能</td>
+<td align="left">无</td>
+</tr>
+<tr>
+<td align="left"><code>thenRun</code>类</td>
+<td align="left">不能</td>
+<td align="left">无</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;R&gt; <span class="title">thenApply</span><span class="params">(Function&lt;? <span class="keyword">super</span> T,? extends U&gt; fn)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;R&gt; <span class="title">thenApplyAsync</span><span class="params">(fn)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAccept</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptAsync</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenRun</span><span class="params">(Runnable action)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenRunAsync</span><span class="params">(Runnable action)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>thenApply 系列函数里参数 fn 的类型是接口 Function，这个接口里与 CompletionStage 相关的方法是 R apply(T t)，这个方法既能接收参数也支持返回值，所以 thenApply 系列方法返回的是CompletionStage。</p>
+<p>而 thenAccept 系列方法里参数 consumer 的类型是接口Consumer，这个接口里与 CompletionStage 相关的方法是 void accept(T t)，这个方法虽然支持参数，但却不支持回值，所以 thenAccept 系列方法返回的是CompletionStage。</p>
+<p>thenRun 系列方法里 action 的参数是 Runnable，所以 action 既不能接收参数也不支持返回值，所以 thenRun 系列方法返回的也是CompletionStage。</p>
+<h3 id="AND汇聚关系"><a href="#AND汇聚关系" class="headerlink" title="AND汇聚关系"></a>AND汇聚关系</h3><table>
+<thead>
+<tr>
+<th align="left">相关函数</th>
+<th align="left">是否可获得前一个任务的返回值(是否接受参数)</th>
+<th align="left">是否有返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">thenCombine类</td>
+<td align="left">能</td>
+<td align="left">有</td>
+</tr>
+<tr>
+<td align="left">thenCompose</td>
+<td align="left">能</td>
+<td align="left">能</td>
+</tr>
+<tr>
+<td align="left">thenAcceptBoth类</td>
+<td align="left">能</td>
+<td align="left">无</td>
+</tr>
+<tr>
+<td align="left">runAfterBoth类</td>
+<td align="left">不能</td>
+<td align="left">无</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function">CompletionStage&lt;R&gt; <span class="title">thenCombine</span><span class="params">(other, fn)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;R&gt; <span class="title">thenCombineAsync</span><span class="params">(other, fn)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptBoth</span><span class="params">(other, consumer)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">thenAcceptBothAsync</span><span class="params">(other, consumer)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">runAfterBoth</span><span class="params">(other, action)</span></span>;</span><br><span class="line"><span class="function">CompletionStage&lt;Void&gt; <span class="title">runAfterBothAsync</span><span class="params">(other, action)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>这里thenCompose和thenCombine是不同的，准确来说其实thenCompose是应该放在串行里面和thenApply相似，但是它也确实是有汇聚作用。</p>
+<h4 id="thenCompose和thenApply的区别？"><a href="#thenCompose和thenApply的区别？" class="headerlink" title="thenCompose和thenApply的区别？"></a>thenCompose和thenApply的区别？</h4><p>thenApply相当于在原来的流程上继续往下走，thenCompose相当于接收上一个流程为参数之一，上一个执行完后再创建一个新的流程，但是最后的结果是和thenApply一样的：</p>
+<p>thenApply版本：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">CompletableFuture&lt;String&gt; completableFuture</span><br><span class="line">  = CompletableFuture.supplyAsync(() -&gt; <span class="string">&quot;Hello&quot;</span>);</span><br><span class="line"> </span><br><span class="line">CompletableFuture&lt;String&gt; future = completableFuture</span><br><span class="line">  .thenApply(s -&gt; s + <span class="string">&quot; World&quot;</span>);</span><br><span class="line"> </span><br><span class="line">assertEquals(<span class="string">&quot;Hello World&quot;</span>, future.get());</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>thenCompose版本</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">CompletableFuture&lt;String&gt; completableFuture </span><br><span class="line">  = CompletableFuture.supplyAsync(() -&gt; <span class="string">&quot;Hello&quot;</span>)</span><br><span class="line">    .thenCompose(s -&gt; CompletableFuture.supplyAsync(() -&gt; s + <span class="string">&quot; World&quot;</span>));</span><br><span class="line"> </span><br><span class="line">assertEquals(<span class="string">&quot;Hello World&quot;</span>, completableFuture.get());</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="OR汇聚关系"><a href="#OR汇聚关系" class="headerlink" title="OR汇聚关系"></a>OR汇聚关系</h3><table>
+<thead>
+<tr>
+<th align="left">相关函数</th>
+<th align="left">是否可获得前一个任务的返回值(是否接受参数)</th>
+<th align="left">是否有返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">applyToEither类</td>
+<td align="left">能</td>
+<td align="left">有</td>
+</tr>
+<tr>
+<td align="left">acceptEither类</td>
+<td align="left">能</td>
+<td align="left">无</td>
+</tr>
+<tr>
+<td align="left">runAfterEither类</td>
+<td align="left">不能</td>
+<td align="left">无</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function">CompletionStage <span class="title">applyToEither</span><span class="params">(other, fn)</span></span>;</span><br><span class="line"><span class="function">CompletionStage <span class="title">applyToEitherAsync</span><span class="params">(other, fn)</span></span>;</span><br><span class="line"><span class="function">CompletionStage <span class="title">acceptEither</span><span class="params">(other, consumer)</span></span>;</span><br><span class="line"><span class="function">CompletionStage <span class="title">acceptEitherAsync</span><span class="params">(other, consumer)</span></span>;</span><br><span class="line"><span class="function">CompletionStage <span class="title">runAfterEither</span><span class="params">(other, action)</span></span>;</span><br><span class="line"><span class="function">CompletionStage <span class="title">runAfterEitherAsync</span><span class="params">(other, action)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>其实上面三个表格几乎一样，就是因为他们不同方法的接受参数不同导致了参数和返回值的能否。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag"># 并发编程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/11/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9ACompletableFuture%E8%AE%A9%E5%BC%82%E6%AD%A5%E6%9B%B4%E7%BA%AF%E7%B2%B9/" rel="prev" title="Java并发编程：CompletableFuture让异步更纯粹（一）">
+      <i class="fa fa-chevron-left"></i> Java并发编程：CompletableFuture让异步更纯粹（一）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3CompletableFuture%E7%9A%84%E6%B5%81%E7%A8%8B%E6%8E%A7%E5%88%B6"><span class="nav-number">1.</span> <span class="nav-text">如何理解CompletableFuture的流程控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%B2%E8%A1%8C%E5%85%B3%E7%B3%BB"><span class="nav-number">1.1.</span> <span class="nav-text">串行关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AND%E6%B1%87%E8%81%9A%E5%85%B3%E7%B3%BB"><span class="nav-number">1.2.</span> <span class="nav-text">AND汇聚关系</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#thenCompose%E5%92%8CthenApply%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">1.2.1.</span> <span class="nav-text">thenCompose和thenApply的区别？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OR%E6%B1%87%E8%81%9A%E5%85%B3%E7%B3%BB"><span class="nav-number">1.3.</span> <span class="nav-text">OR汇聚关系</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Mason"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Mason</p>
+  <div class="site-description" itemprop="description">Talk is cheap,show me the code</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/JAYqq" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;JAYqq" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:scwsugela@gmail.com" title="E-Mail → mailto:scwsugela@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://instagram.com/panderq8" title="Instagram → https:&#x2F;&#x2F;instagram.com&#x2F;panderq8" rel="noopener" target="_blank"><i class="fab fa-instagram fa-fw"></i>Instagram</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+	<span><br></span>	
+    	<span class="post-meta-divider">|</span>
+	<span class="post-meta-item-icon">
+	      <i class="fa fa-eye"></i>
+	</span>
+    	<span>访问总量&nbsp<span id="busuanzi_value_site_pv"></span>&nbsp次</span>
+
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'JenrkbLg10hbBvxnn0W6f4ii-gzGzoHsz',
+      appKey     : 'gzzr0iqoBxqRHxXhaaozRcdJ',
+      placeholder: "Mason邀请你评论，冲冲冲",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
