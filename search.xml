@@ -1,6 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Spring全垒打：Spring中常见的@</title>
+    <url>/2020/11/20/Spring%E5%85%A8%E5%9E%92%E6%89%93%EF%BC%9ASpring%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84@/</url>
+    <content><![CDATA[<h2 id="Bean相关"><a href="#Bean相关" class="headerlink" title="Bean相关"></a>Bean相关</h2><h3 id="Component"><a href="#Component" class="headerlink" title="@Component"></a>@Component</h3><p>Spring帮助我们管理Bean分为两个部分，一个是注册Bean，一个装配Bean。<br>完成这两个动作有三种方式，一种是使用自动配置的方式、一种是使用JavaConfig的方式，一种就是使用XML配置的方式。</p>
+<p>原生XML就是在XML文件中定义Bean，而Component就相当于是代码版的XML注册bean，一般用在类之前，比如：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserService</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样UserService这个类就交给了IOC容器去管理，我们就可以这样去获取IOC为我们创建的实例对象：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ApplicationContext context = <span class="keyword">new</span> AnnotationConfigApplicationContext(AppConfig.class);</span><br><span class="line">UserService userService = context.getBean(UserService.class);</span><br></pre></td></tr></table></figure>
+
+<h3 id="Bean"><a href="#Bean" class="headerlink" title="@Bean"></a>@Bean</h3><p>Bean也是自动注册Bean的一种方式，只不过这是注册第三方Bean的时候使用的，并且使用在Component注解的类下，<strong>表示即将返回一个对象，这个对象需要让IOC当做Bean管理</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="meta">@ConfigurationProperties(&quot;foo.datasource&quot;)</span> <span class="comment">//注入数据源</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> DataSourceProperties <span class="title">fooDataSourceProperties</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> DataSourceProperties();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当然也可以使用Bean以别名的方式创建多个</p>
+<h3 id="Autowired"><a href="#Autowired" class="headerlink" title="@Autowired"></a>@Autowired</h3><p>Bean和Component是注册Bean，那么接下来就是装配Bean，Autowired就是用来装配所依赖的Bean，比如：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DataSourceDemoApplication</span> <span class="keyword">implements</span> <span class="title">CommandLineRunner</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> DataSource dataSource;</span><br><span class="line">    <span class="meta">@Autowired(false)</span></span><br><span class="line">    <span class="keyword">private</span> JdbcTemplate jdbcTemplate;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这就表示需要IOC帮我们给DataSourceDemoApplication这个Bean（虽然这个类没有@Component，但是SpringBootApplication已经包含了ComponentScan，也是表示注册Bean）装配DataSource和JdbcTemplate，关于datasource具体的参数可以配置在application.properties里面告诉IOC</p>
+<p>Autowired默认没找到Bean就会报错，但是里面添加false找不到就不会报错。     </p>
+<p><strong>Autowired通常使用在字段或者函数（函数必须返回一个对象）前</strong></p>
+<h3 id="Scope"><a href="#Scope" class="headerlink" title="@Scope"></a>@Scope</h3><p>默认的@Component，IOC容器会以单例的模式创建，但是有些场景下单例不适合，这时候就需要用@scope说明：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Scope(&quot;prototype&quot;)</span></span><br></pre></td></tr></table></figure>
+
+<p>每次获取bean的时候都会新创建对象</p>
+<h3 id="PostConstruct和-PreDestroy"><a href="#PostConstruct和-PreDestroy" class="headerlink" title="@PostConstruct和@PreDestroy"></a>@PostConstruct和@PreDestroy</h3><p>对一个Bean的初始化和销毁做管理可以使用这两个方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostConstruct</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;UserService init&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@PreDestroy</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;UserService Destroy&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="PropertySource"><a href="#PropertySource" class="headerlink" title="@PropertySource"></a>@PropertySource</h3><p>注入配置，像之前我们配置数据源需要配置用户名密码等等，这些信息可以写在properties文件中，然后在我们需要的地方引入进来，<strong>而这个文件的加载就可以使用PropertySource来实现</strong>：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PropertySource(&quot;app.properties&quot;)</span></span><br><span class="line"><span class="meta">@PropertySource(&quot;smtp.properties&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppConfig</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>smtp.properties:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">smtp.host=smtp.test.example.com</span><br><span class="line">smtp.port=<span class="number">25</span></span><br><span class="line">smtp.username=mailuser</span><br><span class="line">smtp.password=password123</span><br><span class="line">smtp.ssl=<span class="keyword">false</span>`</span><br></pre></td></tr></table></figure>
+
+<p>然后我们可以注入这些信息：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">smtpConfig</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;smtp.host:localhost&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String host;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;smtp.port:25&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> port;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过<code>@Value</code>以<code>$&#123;key:defaultValue&#125;</code>的形式注入</p>
+<h3 id="Profile和-Conditional"><a href="#Profile和-Conditional" class="headerlink" title="@Profile和@Conditional"></a>@Profile和@Conditional</h3><p><strong>用于决定给是否创建Bean</strong>，Profile可以方便的决定在生产环境或者测试环境是否注册装配Bean，Condition则更加广泛，可以根据某个变量来决定是否创建装配Bean</p>
+<h2 id="IOC容器相关"><a href="#IOC容器相关" class="headerlink" title="IOC容器相关"></a>IOC容器相关</h2><h3 id="XML方式"><a href="#XML方式" class="headerlink" title="XML方式"></a>XML方式</h3><p>一般在XML文件里面写好需要注册的Bean，然后使用：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ApplicationContext context = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">&quot;spring-context.xml&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这样来配置Bean</p>
+<h3 id="Configuration-Bean-Component"><a href="#Configuration-Bean-Component" class="headerlink" title="@Configuration+@Bean+@Component"></a>@Configuration+@Bean+@Component</h3><p>这样的方式更加“时尚”</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ComponentScan</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppConfig</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		ApplicationContext context = <span class="keyword">new</span> AnnotationConfigApplicationContext(AppConfig.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>避免了XML的繁琐</strong></p>
+<h3 id="ComponentScan"><a href="#ComponentScan" class="headerlink" title="@ComponentScan"></a>@ComponentScan</h3><p>Configuration只是简化了XML配置Bean的过程，而告诉IOC注册并装配的是ComponentScan，<strong>它告诉容器，自动搜索当前类所在的包以及子包，把所有标注为<code>@Component</code>的Bean自动创建出来，并根据<code>@Autowired</code>进行装配</strong></p>
+]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>Spring</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java并发编程：并发问题之根本</title>
     <url>/2020/10/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E5%B9%B6%E5%8F%91%E9%97%AE%E9%A2%98%E4%B9%8B%E6%A0%B9%E6%9C%AC/</url>
     <content><![CDATA[<p>总结自王宝令老师的极客专栏</p>
@@ -12,6 +67,7 @@
 <li><a href="http://scwmason.cn/2020/11/14/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9AFuture%E5%92%8CFutureTask/">FutureTask</a>（可获得线程返回值，为异步铺路）</li>
 <li><a href="http://scwmason.cn/2020/11/09/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%88%9D%E6%8E%A2/">ThreadPoolExecutor</a>（线程池）</li>
 <li><a href="http://scwmason.cn/2020/11/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9ACompletableFuture%E8%AE%A9%E5%BC%82%E6%AD%A5%E6%9B%B4%E7%BA%AF%E7%B2%B9/">CompletableFuture</a>（更加简洁的异步工具类）</li>
+<li><a href="http://scwmason.cn/2020/11/19/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E4%BD%BF%E7%94%A8CompletionService%E8%A7%A3%E5%86%B3%E6%89%B9%E5%8F%91%E4%BB%BB%E5%8A%A1/">CompletionService</a>（处理批量的无依赖的任务）</li>
 </ul>
 <h3 id="同步（协作）"><a href="#同步（协作）" class="headerlink" title="同步（协作）"></a>同步（协作）</h3><p>并发世界的同步其实就是线程之间的协作，当不同线程分工后，它们执行的不同任务之间一定有一些依赖关系存在。</p>
 <ul>
@@ -45,6 +101,30 @@
 <p>如果在第一步执行完后发生线程切换，这就会导致数据的覆盖问题，这才是 <strong>原子性问题的根本</strong></p>
 <h3 id="编译优化导致的有序性问题"><a href="#编译优化导致的有序性问题" class="headerlink" title="编译优化导致的有序性问题"></a>编译优化导致的有序性问题</h3><p>违直觉容易导致诡异 Bug 的技术，就是编译优化导致的，可能会改变代码执行顺序，可以尝试使用volatile关键字尝试解决。</p>
 <p>学习并发编程最重要的就是：跳出来看全局，理完框架后，一个个跳进去追本质。</p>
+]]></content>
+      <categories>
+        <category>Java并发编程</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>并发编程</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java并发编程：ForkJoin并行计算框架</title>
+    <url>/2020/11/24/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9AForkJoin%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97%E6%A1%86%E6%9E%B6/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>其实从前面线程池开始，我们看待并发编程的视角已经从线程本身过渡到任务上来了，比如：如果我们面对的是普通的并行任务，可以采用<strong>线程池+Future</strong>的方法（Runnable也可），如果我们的任务有很多是互相依赖的比如“泡茶任务”，那么我们就可以使用<strong>CompletableFuture</strong>，如果面对的是大量的并行任务，那么我们可以使用<strong>CompletionService</strong>。这是专栏老师给我们最正确的思路。</p>
+<p>上面的三种都属于 <strong>并发问题之根本</strong> 中的分工问题</p>
+<p>当然，其实还有很多复杂的任务模型，其中一种就是分治任务。</p>
+<h2 id="Divided-Task"><a href="#Divided-Task" class="headerlink" title="Divided Task"></a>Divided Task</h2><p>分治任务最大的特征就是<strong>任务可以被拆解成相同逻辑的子任务</strong>，比如斐波那契数列。</p>
+<p>计算斐波那契数列最简单的就是递归的方法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function">func <span class="title">cal</span><span class="params">(<span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">   <span class="keyword">if</span>(n&lt;=<span class="number">1</span>) reutrn n;</span><br><span class="line">   <span class="keyword">return</span> cal(n-<span class="number">1</span>)+cal(n-<span class="number">2</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在并发程序中，有一种框架叫做并行计算框架，放在这里，如果我们能每一个子任务：cal(n-1)和cal(n-2)在不同线程计算，并把结果返回，这样就可以在本质上提高斐波那契额数列的计算效率。</p>
+<h2 id="Fork-Join"><a href="#Fork-Join" class="headerlink" title="Fork/Join"></a>Fork/Join</h2><p>Fork/Join 计算框架主要包含两部分，一部分是分治任务的线程池 ForkJoinPool，另一部分是分治任务 ForkJoinTask。这两部分的关系类似于 ThreadPoolExecutor 和 Runnable 的关系，都可以理解为提交任务到线程池，只不过分治任务有自己独特类型 ForkJoinTask。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FockJoinDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        ForkJoinPool fjpoll = <span class="keyword">new</span> ForkJoinPool(<span class="number">4</span>); <span class="comment">//创建分治任务的线程池</span></span><br><span class="line">        Fibonacci fib = <span class="keyword">new</span> Fibonacci(<span class="number">3</span>);</span><br><span class="line">        Integer result = fjpoll.invoke(fib); <span class="comment">//将任务放入线程池</span></span><br><span class="line">        System.out.println(<span class="string">&quot;Result: &quot;</span>+result);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Fibonacci</span> <span class="keyword">extends</span> <span class="title">RecursiveTask</span>&lt;<span class="title">Integer</span>&gt;</span>&#123; <span class="comment">//要继承RecursiveTask</span></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> n;</span><br><span class="line">        Fibonacci(<span class="keyword">int</span> n)&#123;<span class="keyword">this</span>.n=n;&#125;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> Integer <span class="title">compute</span><span class="params">()</span> </span>&#123; <span class="comment">//继承了就要重写compute方法</span></span><br><span class="line">            <span class="keyword">if</span>(n&lt;=<span class="number">1</span>) <span class="keyword">return</span> n;</span><br><span class="line">            Fibonacci f1 = <span class="keyword">new</span> Fibonacci(n-<span class="number">1</span>);</span><br><span class="line">            f1.fork(); <span class="comment">//异步执行子任务</span></span><br><span class="line">            Fibonacci f2 = <span class="keyword">new</span> Fibonacci(n-<span class="number">2</span>);</span><br><span class="line">            <span class="keyword">return</span> f2.compute()+f1.join(); <span class="comment">//join表示f1等待f2完成并返回计算结果</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Source-Code"><a href="#Source-Code" class="headerlink" title="Source Code"></a>Source Code</h2><p>关于源码会在本站的源码专栏提供</p>
 ]]></content>
       <categories>
         <category>Java并发编程</category>
@@ -109,9 +189,13 @@
     <url>/2020/11/18/Spring%E5%85%A8%E5%9E%92%E6%89%93%EF%BC%9AJDBC%E4%B9%8B%E9%85%8D%E7%BD%AE%E5%8D%95%E6%95%B0%E6%8D%AE%E6%BA%90/</url>
     <content><![CDATA[<h2 id="从一个例子看看Spring-Boot做了什么"><a href="#从一个例子看看Spring-Boot做了什么" class="headerlink" title="从一个例子看看Spring Boot做了什么"></a>从一个例子看看Spring Boot做了什么</h2><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@Slf4j</span> <span class="comment">//配合lombok打印日志</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DatabaseApplication</span> <span class="keyword">implements</span> <span class="title">CommandLineRunner</span> </span>&#123; </span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> DataSource dataSource;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(DatabaseApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(String... args)</span> <span class="keyword">throws</span> Exception </span>&#123; <span class="comment">//CommandLineRunner是容器启动成功后的回调,run主动调用</span></span><br><span class="line">        showConnection();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">showConnection</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        log.debug(<span class="string">&quot;------0---------&quot;</span>);</span><br><span class="line">        log.info(dataSource.toString());</span><br><span class="line">        Connection conn = dataSource.getConnection(); <span class="comment">//获取一个链接</span></span><br><span class="line">        log.info(conn.toString()); <span class="comment">//打印出链接的信息</span></span><br><span class="line">        conn.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<ul>
+<li>@Autowired是主动依赖注入的意思，相当于写了一个setDatasource方法</li>
+</ul>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">打印</span></span><br><span class="line">HikariProxyConnection@51325109 wrapping conn0: url=jdbc:h2:mem:f57edf1d-6cef-4c45-8c0f-b2b51ced2d6b user=SA</span><br></pre></td></tr></table></figure>
 
 <p>从打印信息可以看出链接串里的用户、数据库名都已经使用了默认的，<strong>这就是spring自动为我们做的</strong></p>
+<p>并且看到Hikari这个连接池，这是一个开源的数据库连接池，在当前的spring版本中是作为默认的datasource</p>
 <h3 id="利用actuator查看beans信息"><a href="#利用actuator查看beans信息" class="headerlink" title="利用actuator查看beans信息"></a>利用actuator查看beans信息</h3><p>因为我们pom中依赖了actuator，可以在浏览器方便查看beans信息：<a href="http://localhost:8080/actuator/beans">http://localhost:8080/actuator/beans</a></p>
 <p><img src="https://i.loli.net/2020/11/18/DWTxHKNknAwqdhY.png"></p>
 <p>这里的dataSource的bean就是spring boot自动配置的。</p>
@@ -123,6 +207,7 @@
 <p>这里我们可以根据需要配置自己的bean，然后我们自己读取这个文件的信息</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">    <span class="comment">//1.读取xml配置文件，来管理上下文</span></span><br><span class="line">    ApplicationContext applicationContext =</span><br><span class="line">        <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">&quot;applicationContext*.xml&quot;</span>);</span><br><span class="line">    <span class="comment">//2.没有了actuator，只能打印beans信息</span></span><br><span class="line">    showBeans(applicationContext);</span><br><span class="line">    <span class="comment">//3.打印数据源的一个链接，和上面spring版本一样的功能</span></span><br><span class="line">    dataSourceDemo(applicationContext);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>这里的ApplicationContext实例化后就相当于我们有了一个IOC容器</p>
 <p>然后我们自己写了两个bean</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**这个bean用来配置数据源**/</span></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    Properties properties = <span class="keyword">new</span> Properties();</span><br><span class="line">    properties.setProperty(<span class="string">&quot;driverClassName&quot;</span>, <span class="string">&quot;org.h2.Driver&quot;</span>);</span><br><span class="line">    properties.setProperty(<span class="string">&quot;url&quot;</span>, <span class="string">&quot;jdbc:h2:mem:testdb&quot;</span>);</span><br><span class="line">    properties.setProperty(<span class="string">&quot;username&quot;</span>, <span class="string">&quot;sa&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> BasicDataSourceFactory.createDataSource(properties);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**这个bean根据数据源配置去支持事务相关操作**/</span></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> PlatformTransactionManager <span class="title">transactionManager</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> DataSourceTransactionManager(dataSource());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -135,6 +220,13 @@
 <p>打印信息：</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">-----showBeans----- #第一个就是我们的</span><br><span class="line">[dataSourceDemo, org.springframework.context.annotation.internalConfigurationAnnotationProcessor, transactionInterceptor, org.springframework.transaction.config.internalTransactionalEventListenerFactory, dataSource, transactionManager, org.springframework.aop.config.internalAutoProxyCreator]</span><br><span class="line">------showDataSource------</span><br><span class="line">org.apache.commons.dbcp2.BasicDataSource@4ef74c30</span><br><span class="line">1099552523, URL=jdbc:h2:mem:testdb, H2 JDBC Driver</span><br></pre></td></tr></table></figure>
 
+<h3 id="流程整理"><a href="#流程整理" class="headerlink" title="流程整理"></a>流程整理</h3><p>上面其实是我们自己配置了数据源，我们也借此机会直接了解到配置bean的一种较为麻烦的过程：</p>
+<ol>
+<li>编写xml文件的bean标签内容（或者是用函数加@bean告诉IOC，两种方式是一样的）、</li>
+<li>ApplicationContext创建IOC容器，并加载xml文件</li>
+<li>IOC扫描出bean并加载</li>
+<li>如果不标注Autowired，就必须自己写依赖注入，也就是setDataSource方法，如果有其他依赖也是</li>
+</ol>
 <h3 id="Spring-Boot做了什么"><a href="#Spring-Boot做了什么" class="headerlink" title="Spring Boot做了什么"></a>Spring Boot做了什么</h3><p><img src="https://i.loli.net/2020/11/18/XlbqBrLNSGacvpI.png"></p>
 <p>JdbcTemplate 是可以进行SQL操作的spring依赖</p>
 <h2 id="拥抱Spring-Boot"><a href="#拥抱Spring-Boot" class="headerlink" title="拥抱Spring Boot"></a>拥抱Spring Boot</h2><p><a href="https://github.com/geektime-geekbang/geektime-spring-family/tree/master/Chapter%202/datasource-demo/src/main">https://github.com/geektime-geekbang/geektime-spring-family/tree/master/Chapter%202/datasource-demo/src/main</a></p>
