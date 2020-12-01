@@ -1,6 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Spring全垒打：Spring中那些操作数据库的方式</title>
+    <url>/2020/12/01/Spring%E5%85%A8%E5%9E%92%E6%89%93%EF%BC%9ASpring%E4%B8%AD%E9%82%A3%E4%BA%9B%E6%93%8D%E4%BD%9C%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E6%96%B9%E5%BC%8F/</url>
+    <content><![CDATA[<h2 id="JDBC"><a href="#JDBC" class="headerlink" title="JDBC"></a>JDBC</h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.2.0.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>JDBC是标准Spring操作数据的方式，使用 <strong>JdbcTemplate</strong>来增删改查</p>
+<h2 id="DAO"><a href="#DAO" class="headerlink" title="DAO"></a>DAO</h2><p>DAO并不是一种具体方式，而是数据访问的抽象层，为的是隐藏直接操作数据的方式，暴露出更清晰的访问流：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDao</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    JdbcTemplate jdbcTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="function">User <span class="title">getById</span><span class="params">(<span class="keyword">long</span> id)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">List&lt;User&gt; <span class="title">getUsers</span><span class="params">(<span class="keyword">int</span> page)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">User <span class="title">createUser</span><span class="params">(User user)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">User <span class="title">updateUser</span><span class="params">(User user)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">deleteUser</span><span class="params">(User user)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>里面的每个具体操作方式可以使用JDBCTemplate写</p>
+<h2 id="Hibernate"><a href="#Hibernate" class="headerlink" title="Hibernate"></a>Hibernate</h2><p><a href="https://www.liaoxuefeng.com/wiki/1252599548343744/1266263275862720">https://www.liaoxuefeng.com/wiki/1252599548343744/1266263275862720</a></p>
+<p>是一个 <strong>ORM框架</strong>，因此同样需要引入JDBC驱动依赖，还需要datesource</p>
+<h3 id="依赖-1"><a href="#依赖-1" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- JDBC驱动，这里使用HSQLDB --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.hsqldb<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hsqldb<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- JDBC连接池 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.zaxxer<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>HikariCP<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.4.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- Hibernate --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.hibernate<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hibernate-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.4.2.Final<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="核心"><a href="#核心" class="headerlink" title="核心"></a>核心</h3><h4 id="LocalSessionFactoryBean"><a href="#LocalSessionFactoryBean" class="headerlink" title="LocalSessionFactoryBean"></a>LocalSessionFactoryBean</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppConfig</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function">LocalSessionFactoryBean <span class="title">createSessionFactory</span><span class="params">(<span class="meta">@Autowired</span> DataSource dataSource)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> props = <span class="keyword">new</span> Properties();</span><br><span class="line">        props.setProperty(<span class="string">&quot;hibernate.hbm2ddl.auto&quot;</span>, <span class="string">&quot;update&quot;</span>); </span><br><span class="line">        props.setProperty(<span class="string">&quot;hibernate.dialect&quot;</span>, <span class="string">&quot;org.hibernate.dialect.HSQLDialect&quot;</span>);</span><br><span class="line">        props.setProperty(<span class="string">&quot;hibernate.show_sql&quot;</span>, <span class="string">&quot;true&quot;</span>);</span><br><span class="line">        <span class="keyword">var</span> sessionFactoryBean = <span class="keyword">new</span> LocalSessionFactoryBean();</span><br><span class="line">        sessionFactoryBean.setDataSource(dataSource);</span><br><span class="line">        <span class="comment">// 扫描指定的package获取所有entity class:</span></span><br><span class="line">        sessionFactoryBean.setPackagesToScan(<span class="string">&quot;com.itranswarp.learnjava.entity&quot;</span>);</span><br><span class="line">        sessionFactoryBean.setHibernateProperties(props);</span><br><span class="line">        <span class="keyword">return</span> sessionFactoryBean;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在Hibernate中，**<code>Session</code>是封装了一个JDBC <code>Connection</code><strong>的实例，而</strong>SessionFactory是封装了JDBC <code>DataSource</code>的实例**，即<code>SessionFactory</code>持有连接池，每次需要操作数据库的时候，<code>SessionFactory</code>创建一个新的<code>Session</code>，相当于从连接池获取到一个新的<code>Connection</code></p>
+<h4 id="HibernateTemplate"><a href="#HibernateTemplate" class="headerlink" title="HibernateTemplate"></a>HibernateTemplate</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function">HibernateTemplate <span class="title">createHibernateTemplate</span><span class="params">(<span class="meta">@Autowired</span> SessionFactory sessionFactory)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> HibernateTemplate(sessionFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>相当于JDBCTemplate</p>
+<h4 id="HibernateTransactionManager"><a href="#HibernateTransactionManager" class="headerlink" title="HibernateTransactionManager"></a>HibernateTransactionManager</h4><p>事务支持</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function">PlatformTransactionManager <span class="title">createTxManager</span><span class="params">(<span class="meta">@Autowired</span> SessionFactory sessionFactory)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> HibernateTransactionManager(sessionFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="查询方式"><a href="#查询方式" class="headerlink" title="查询方式"></a>查询方式</h3><ol>
+<li>Example查询</li>
+<li>Criteria查询</li>
+<li>HQL查询</li>
+<li>Hibernate原生接口</li>
+</ol>
+<h2 id="JPA"><a href="#JPA" class="headerlink" title="JPA"></a>JPA</h2><p><a href="https://www.liaoxuefeng.com/wiki/1252599548343744/1282383789686817">https://www.liaoxuefeng.com/wiki/1252599548343744/1282383789686817</a></p>
+<p>同样需要datasource，但是不需要额外的依赖，因为Spring已经内嵌了</p>
+<h3 id="核心-1"><a href="#核心-1" class="headerlink" title="核心"></a>核心</h3><p>LocalContainerEntityManagerFactoryBean</p>
+<p>相当于Hibernate的LocalSessionFactoryBean，创建出EntityManagerFactory来管理数据库连接</p>
+<h2 id="MyBatis"><a href="#MyBatis" class="headerlink" title="MyBatis"></a>MyBatis</h2><p><a href="https://www.liaoxuefeng.com/wiki/1252599548343744/1331313418174498">https://www.liaoxuefeng.com/wiki/1252599548343744/1331313418174498</a></p>
+<h3 id="依赖-2"><a href="#依赖-2" class="headerlink" title="依赖"></a>依赖</h3><ul>
+<li>org.mybatis:mybatis:3.5.4</li>
+<li>org.mybatis:mybatis-spring:2.0.4</li>
+<li>datasource</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th align="left">JDBC</th>
+<th align="left">Hibernate</th>
+<th align="left">JPA</th>
+<th align="left">MyBatis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">DataSource</td>
+<td align="left">SessionFactory</td>
+<td align="left">EntityManagerFactory</td>
+<td align="left">SqlSessionFactory</td>
+</tr>
+<tr>
+<td align="left">Connection</td>
+<td align="left">Session</td>
+<td align="left">EntityManager</td>
+<td align="left">SqlSession</td>
+</tr>
+</tbody></table>
+]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>Spring</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spring全垒打：Spring中常见的@</title>
     <url>/2020/11/20/Spring%E5%85%A8%E5%9E%92%E6%89%93%EF%BC%9ASpring%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84@/</url>
     <content><![CDATA[<h2 id="Bean相关"><a href="#Bean相关" class="headerlink" title="Bean相关"></a>Bean相关</h2><h3 id="Component"><a href="#Component" class="headerlink" title="@Component"></a>@Component</h3><p>Spring帮助我们管理Bean分为两个部分，一个是注册Bean，一个装配Bean。<br>完成这两个动作有三种方式，一种是使用自动配置的方式、一种是使用JavaConfig的方式，一种就是使用XML配置的方式。</p>
