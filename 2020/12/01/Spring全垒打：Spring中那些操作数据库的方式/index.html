@@ -28,7 +28,7 @@
 <meta property="og:description" content="总结自廖神《Java基础》Spring篇">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-12-01T11:56:54.446Z">
-<meta property="article:modified_time" content="2020-12-01T12:24:56.078Z">
+<meta property="article:modified_time" content="2020-12-03T08:09:39.385Z">
 <meta property="article:author" content="Mason">
 <meta property="article:tag" content="Spring">
 <meta name="twitter:card" content="summary">
@@ -212,19 +212,21 @@
 
         <div class="post-meta">
           
-            <i class="fa fa-thumb-tack"></i>
-            <font color="green">置顶</font>
-            <span class="post-meta-divider">|</span>
-          
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2020-12-01 19:56:54 / Modified: 20:24:56" itemprop="dateCreated datePublished" datetime="2020-12-01T19:56:54+08:00">2020-12-01</time>
+              <time title="Created: 2020-12-01 19:56:54" itemprop="dateCreated datePublished" datetime="2020-12-01T19:56:54+08:00">2020-12-01</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-12-03 16:09:39" itemprop="dateModified" datetime="2020-12-03T16:09:39+08:00">2020-12-03</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -268,7 +270,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="JDBC"><a href="#JDBC" class="headerlink" title="JDBC"></a>JDBC</h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.2.0.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+        <h2 id="JdbcTemplate"><a href="#JdbcTemplate" class="headerlink" title="JdbcTemplate"></a><strong>JdbcTemplate</strong></h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.2.0.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>JDBC是标准Spring操作数据的方式，使用 <strong>JdbcTemplate</strong>来增删改查</p>
 <h2 id="DAO"><a href="#DAO" class="headerlink" title="DAO"></a>DAO</h2><p>DAO并不是一种具体方式，而是数据访问的抽象层，为的是隐藏直接操作数据的方式，暴露出更清晰的访问流：</p>
@@ -294,7 +296,7 @@
 <li>HQL查询</li>
 <li>Hibernate原生接口</li>
 </ol>
-<h2 id="JPA"><a href="#JPA" class="headerlink" title="JPA"></a>JPA</h2><p><a target="_blank" rel="noopener" href="https://www.liaoxuefeng.com/wiki/1252599548343744/1282383789686817">https://www.liaoxuefeng.com/wiki/1252599548343744/1282383789686817</a></p>
+<h2 id="Spring-Data-JPA"><a href="#Spring-Data-JPA" class="headerlink" title="Spring Data JPA"></a>Spring Data JPA</h2><p><a target="_blank" rel="noopener" href="https://www.liaoxuefeng.com/wiki/1252599548343744/1282383789686817">https://www.liaoxuefeng.com/wiki/1252599548343744/1282383789686817</a></p>
 <p>同样需要datasource，但是不需要额外的依赖，因为Spring已经内嵌了</p>
 <h3 id="核心-1"><a href="#核心-1" class="headerlink" title="核心"></a>核心</h3><p>LocalContainerEntityManagerFactoryBean</p>
 <p>相当于Hibernate的LocalSessionFactoryBean，创建出EntityManagerFactory来管理数据库连接</p>
@@ -347,7 +349,10 @@
     <a href="/2020/11/24/Spring%E5%85%A8%E5%9E%92%E6%89%93%EF%BC%9AJdbcTemplate%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C/" rel="prev" title="Spring全垒打：JdbcTemplate基本操作">
       <i class="fa fa-chevron-left"></i> Spring全垒打：JdbcTemplate基本操作
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/12/03/Spring%E5%85%A8%E5%9E%92%E6%89%93%EF%BC%9ASpring%20Data%20JPA%E4%B8%AD%E7%9A%84%E4%B8%80%E4%BA%9B%E8%A7%84%E8%8C%83/" rel="next" title="Spring全垒打：Spring Data JPA中的一些规范">
+      Spring全垒打：Spring Data JPA中的一些规范 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -407,7 +412,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#JDBC"><span class="nav-number">1.</span> <span class="nav-text">JDBC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96"><span class="nav-number">1.1.</span> <span class="nav-text">依赖</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DAO"><span class="nav-number">2.</span> <span class="nav-text">DAO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hibernate"><span class="nav-number">3.</span> <span class="nav-text">Hibernate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96-1"><span class="nav-number">3.1.</span> <span class="nav-text">依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83"><span class="nav-number">3.2.</span> <span class="nav-text">核心</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#LocalSessionFactoryBean"><span class="nav-number">3.2.1.</span> <span class="nav-text">LocalSessionFactoryBean</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HibernateTemplate"><span class="nav-number">3.2.2.</span> <span class="nav-text">HibernateTemplate</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HibernateTransactionManager"><span class="nav-number">3.2.3.</span> <span class="nav-text">HibernateTransactionManager</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E6%96%B9%E5%BC%8F"><span class="nav-number">3.3.</span> <span class="nav-text">查询方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JPA"><span class="nav-number">4.</span> <span class="nav-text">JPA</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83-1"><span class="nav-number">4.1.</span> <span class="nav-text">核心</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MyBatis"><span class="nav-number">5.</span> <span class="nav-text">MyBatis</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96-2"><span class="nav-number">5.1.</span> <span class="nav-text">依赖</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#JdbcTemplate"><span class="nav-number">1.</span> <span class="nav-text">JdbcTemplate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96"><span class="nav-number">1.1.</span> <span class="nav-text">依赖</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DAO"><span class="nav-number">2.</span> <span class="nav-text">DAO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hibernate"><span class="nav-number">3.</span> <span class="nav-text">Hibernate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96-1"><span class="nav-number">3.1.</span> <span class="nav-text">依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83"><span class="nav-number">3.2.</span> <span class="nav-text">核心</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#LocalSessionFactoryBean"><span class="nav-number">3.2.1.</span> <span class="nav-text">LocalSessionFactoryBean</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HibernateTemplate"><span class="nav-number">3.2.2.</span> <span class="nav-text">HibernateTemplate</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HibernateTransactionManager"><span class="nav-number">3.2.3.</span> <span class="nav-text">HibernateTransactionManager</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E6%96%B9%E5%BC%8F"><span class="nav-number">3.3.</span> <span class="nav-text">查询方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Data-JPA"><span class="nav-number">4.</span> <span class="nav-text">Spring Data JPA</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83-1"><span class="nav-number">4.1.</span> <span class="nav-text">核心</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MyBatis"><span class="nav-number">5.</span> <span class="nav-text">MyBatis</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96-2"><span class="nav-number">5.1.</span> <span class="nav-text">依赖</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -423,20 +428,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">68</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">18</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -474,7 +479,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2020</span>
+  <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/icon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/icon.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="总结自极客专栏《Redis核心技术与实战》04讲">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis的AOF日志">
+<meta property="og:url" content="http://example.com/2021/01/05/redis%E7%9A%84AOF%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6/index.html">
+<meta property="og:site_name" content="Mason&#39;s Blog">
+<meta property="og:description" content="总结自极客专栏《Redis核心技术与实战》04讲">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2021/01/05/EkSPChFNqGV6oyX.jpg">
+<meta property="article:published_time" content="2021-01-05T08:51:07.900Z">
+<meta property="article:modified_time" content="2021-01-05T10:51:13.301Z">
+<meta property="article:author" content="Mason">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/01/05/EkSPChFNqGV6oyX.jpg">
+
+<link rel="canonical" href="http://example.com/2021/01/05/redis%E7%9A%84AOF%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>redis的AOF日志 | Mason's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Mason's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/05/redis%E7%9A%84AOF%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Mason">
+      <meta itemprop="description" content="Talk is cheap,show me the code">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mason's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          redis的AOF日志
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-01-05 16:51:07 / Modified: 18:51:13" itemprop="dateCreated datePublished" datetime="2021-01-05T16:51:07+08:00">2021-01-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/01/05/redis%E7%9A%84AOF%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6/" class="post-meta-item leancloud_visitors" data-flag-title="redis的AOF日志" title="Views">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine: </span>
+    
+    <a title="valine" href="/2021/01/05/redis%E7%9A%84AOF%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/05/redis%E7%9A%84AOF%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+            <div class="post-description">总结自极客专栏《Redis核心技术与实战》04讲</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="What-is-AOF？"><a href="#What-is-AOF？" class="headerlink" title="What is AOF？"></a>What is AOF？</h2><p>AOF(Append Only File)是Redis日志文件的一种文件格式。</p>
+<h2 id="Why-AOF？"><a href="#Why-AOF？" class="headerlink" title="Why AOF？"></a>Why AOF？</h2><p>因为Redis是内存型数据库，特别是在redis做缓存的时候如果redis挂掉或者服务器宕机那么内存中的数据就会丢失，因此就需要记录日志来做实现数据的持久化，<strong>redis中数据的持久化主要靠AOF和RDB</strong>。</p>
+<h2 id="How-AOF？"><a href="#How-AOF？" class="headerlink" title="How AOF？"></a>How AOF？</h2><p>AOF最重要的特性就是它是一个<strong>写后日志</strong>，意味着是先执行命令然后写日志的，这个和mysql的WAL(Write Ahead Log)是相悖的，具体原因后面说明。</p>
+<p>所以redis的一个set key val的命令执行流程就是先执行，写完内存后再写AOF。</p>
+<h3 id="AOF的格式"><a href="#AOF的格式" class="headerlink" title="AOF的格式"></a>AOF的格式</h3><p><img src="https://i.loli.net/2021/01/05/EkSPChFNqGV6oyX.jpg"></p>
+<p>×3表示当前命令有三个部分（set testkey testvalue）；$3表示下一个部分有三个字节（’s’,’e’,’t’）；然后是具体命令部分。</p>
+<h3 id="AOF的优势"><a href="#AOF的优势" class="headerlink" title="AOF的优势"></a>AOF的优势</h3><h4 id="1-高效"><a href="#1-高效" class="headerlink" title="1.高效"></a>1.高效</h4><p>为了不影响redis的效率，因此写后日志是服从redis不进行语法检查的要求的，所以如果命令有语法错误就不会被记录，这也是为什么要“写后”的原因。</p>
+<h4 id="2-非阻塞"><a href="#2-非阻塞" class="headerlink" title="2.非阻塞"></a>2.非阻塞</h4><p>由于是在写完数据后才记录，因此不会阻塞当前主线程（毕竟redis的只有一个主线程）</p>
+<h3 id="AOF的隐患"><a href="#AOF的隐患" class="headerlink" title="AOF的隐患"></a>AOF的隐患</h3><h4 id="1-阻塞"><a href="#1-阻塞" class="headerlink" title="1.阻塞"></a>1.阻塞</h4><p>怎么又阻塞了？这里的阻塞指的是由于写AOF这个操作也是在主线程中执行，因此如果AOF文件过大或者磁盘压力本来就很大的时候就会阻塞主线程下一个命令。</p>
+<h4 id="2-数据安全性"><a href="#2-数据安全性" class="headerlink" title="2.数据安全性"></a>2.数据安全性</h4><p>如果数据写完后还没来得及写日志就宕机了，就无法从日志恢复数据了，造成数据丢失</p>
+<h3 id="如何解决隐患"><a href="#如何解决隐患" class="headerlink" title="如何解决隐患"></a>如何解决隐患</h3><p>这两个隐患都和AOF写入磁盘有关，所以只要我们控制AOF刷盘时机就可以，redis提供了三种刷盘策略，<strong>appendfsync</strong>：</p>
+<ol>
+<li>Always，同步写回：每个写命令执行完，立马同步地将日志写回磁盘；（<strong>效率低，可靠性强</strong>）</li>
+<li>Everysec，每秒写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，每隔一秒把缓冲区中的内容写入磁盘；（<strong>折中策略</strong>）</li>
+<li>No，操作系统控制的写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，由操作系统决定何时将缓冲区内容写回磁盘。（<strong>效率高，可靠性差</strong>）</li>
+</ol>
+<h3 id="解决隐患中的隐患"><a href="#解决隐患中的隐患" class="headerlink" title="解决隐患中的隐患"></a>解决隐患中的隐患</h3><p>我们解决隐患主要是控制刷盘时机，但是如果AOF很大，数据恢复就需要很久很久，影响redis的正常使用，因此这时候就需要重写机制。</p>
+<h3 id="重写机制"><a href="#重写机制" class="headerlink" title="重写机制"></a>重写机制</h3><p>重写机制主要解决的是AOF文件过大导致数据恢复过慢</p>
+<p>重写机制最重要的就是“多变一”策略，也就是如果a这个值被修改了很多次，那么其实只需要在重写为一条执行就可以，没必要复现中间完整的过程。</p>
+<h4 id="重写的过程：一处拷贝，两处日志"><a href="#重写的过程：一处拷贝，两处日志" class="headerlink" title="重写的过程：一处拷贝，两处日志"></a>重写的过程：一处拷贝，两处日志</h4><p><strong>一处拷贝</strong></p>
+<p>指的是主线程fork出子线程，然后子线程就需要拷贝主线程的数据结构，包含了内存结构中保存的数据。这样子线程就可以不影响主线程默默重写日志了。</p>
+<p><strong>两处日志</strong></p>
+<p>分别是原AOF日志缓冲区和重写AOF日志缓冲区。</p>
+<p>在重写的过程中依然会有写入操作，因此这个操作会被写入原AOF的日志缓冲区和重写日志缓冲区，而何时写到磁盘是由appendfsync策略决定的，这样就可以保证在重写阶段新的操作也可以被写入而不会丢失，等到重写结束之后就会使用新的AOF文件替换原来的。</p>
+<h4 id="重写中的阻塞"><a href="#重写中的阻塞" class="headerlink" title="重写中的阻塞"></a>重写中的阻塞</h4><p>重写中的阻塞主要在两个地方：fork子进程的时候和AOF重写中父进程有写入操作的时候。</p>
+<p><strong>fork时</strong></p>
+<p>fork时父进程需要拷贝自己的数据结构给的子进程，也就是task_struct中的各种包括打开的文件、内存结构mm_struct等等，这里有个非常重要的技术就是 <strong>Copy On Write</strong>，就是为了防止fork的时候一次性拷贝过多的结构会阻塞严重，它做法是等有数据改动的时候才重新拷贝开辟新物理内存映射到虚拟内存（内存管理器做的）。因此fork一开始会拷贝父进程的页表，共享父进程的数据结构，如果页表很大，那么拷贝也是阻塞的。</p>
+<p><strong>重写时有写入操作</strong></p>
+<p>这个现象不可避免，如果父进程收到一个对已存在的key做改变，那么父进程做的就是修改完父进程内存空间key对应数据后，在子进程内开辟新的内存空间放这个值（这样父子进程内存逐渐有自己的内存空间），并且申请内存是以页为单位的，因此如果这时候操作系统的Huge Page开的很大，并且正好这个操作是一个bigkey，那么这个开辟内存的过程就会阻塞。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/redis/" rel="tag"># redis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/12/24/Spring%E5%85%A8%E5%9E%92%E6%89%93%EF%BC%9ASpring%E4%B8%8A%E4%B8%8B%E6%96%87/" rel="prev" title="Spring全垒打：Spring上下文">
+      <i class="fa fa-chevron-left"></i> Spring全垒打：Spring上下文
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-AOF%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">What is AOF？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why-AOF%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">Why AOF？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-AOF%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">How AOF？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF%E7%9A%84%E6%A0%BC%E5%BC%8F"><span class="nav-number">3.1.</span> <span class="nav-text">AOF的格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="nav-number">3.2.</span> <span class="nav-text">AOF的优势</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E9%AB%98%E6%95%88"><span class="nav-number">3.2.1.</span> <span class="nav-text">1.高效</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E9%9D%9E%E9%98%BB%E5%A1%9E"><span class="nav-number">3.2.2.</span> <span class="nav-text">2.非阻塞</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF%E7%9A%84%E9%9A%90%E6%82%A3"><span class="nav-number">3.3.</span> <span class="nav-text">AOF的隐患</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E9%98%BB%E5%A1%9E"><span class="nav-number">3.3.1.</span> <span class="nav-text">1.阻塞</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E6%95%B0%E6%8D%AE%E5%AE%89%E5%85%A8%E6%80%A7"><span class="nav-number">3.3.2.</span> <span class="nav-text">2.数据安全性</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E9%9A%90%E6%82%A3"><span class="nav-number">3.4.</span> <span class="nav-text">如何解决隐患</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E9%9A%90%E6%82%A3%E4%B8%AD%E7%9A%84%E9%9A%90%E6%82%A3"><span class="nav-number">3.5.</span> <span class="nav-text">解决隐患中的隐患</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%8D%E5%86%99%E6%9C%BA%E5%88%B6"><span class="nav-number">3.6.</span> <span class="nav-text">重写机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%87%8D%E5%86%99%E7%9A%84%E8%BF%87%E7%A8%8B%EF%BC%9A%E4%B8%80%E5%A4%84%E6%8B%B7%E8%B4%9D%EF%BC%8C%E4%B8%A4%E5%A4%84%E6%97%A5%E5%BF%97"><span class="nav-number">3.6.1.</span> <span class="nav-text">重写的过程：一处拷贝，两处日志</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%87%8D%E5%86%99%E4%B8%AD%E7%9A%84%E9%98%BB%E5%A1%9E"><span class="nav-number">3.6.2.</span> <span class="nav-text">重写中的阻塞</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Mason"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Mason</p>
+  <div class="site-description" itemprop="description">Talk is cheap,show me the code</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">68</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/JAYqq" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;JAYqq" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:scwsugela@gmail.com" title="E-Mail → mailto:scwsugela@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://instagram.com/panderq8" title="Instagram → https:&#x2F;&#x2F;instagram.com&#x2F;panderq8" rel="noopener" target="_blank"><i class="fab fa-instagram fa-fw"></i>Instagram</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mason</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+	<span><br></span>	
+    	<span class="post-meta-divider">|</span>
+	<span class="post-meta-item-icon">
+	      <i class="fa fa-eye"></i>
+	</span>
+    	<span>访问总量&nbsp<span id="busuanzi_value_site_pv"></span>&nbsp次</span>
+
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'JenrkbLg10hbBvxnn0W6f4ii-gzGzoHsz',
+      appKey     : 'gzzr0iqoBxqRHxXhaaozRcdJ',
+      placeholder: "Mason邀请你评论，冲冲冲",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : true,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
