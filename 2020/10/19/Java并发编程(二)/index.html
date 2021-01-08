@@ -28,7 +28,7 @@
 <meta property="og:description" content="《Java并发编程艺术mini》——并发编程基础、极客《Java并发编程实战》">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-10-19T12:10:09.866Z">
-<meta property="article:modified_time" content="2020-11-17T02:49:31.456Z">
+<meta property="article:modified_time" content="2021-01-08T15:00:18.747Z">
 <meta property="article:author" content="Mason">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="并发编程">
@@ -226,7 +226,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-11-17 10:49:31" itemprop="dateModified" datetime="2020-11-17T10:49:31+08:00">2020-11-17</time>
+                <time title="Modified: 2021-01-08 23:00:18" itemprop="dateModified" datetime="2021-01-08T23:00:18+08:00">2021-01-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -286,6 +286,10 @@
 <h3 id="破坏不可抢占"><a href="#破坏不可抢占" class="headerlink" title="破坏不可抢占"></a>破坏不可抢占</h3><p>synchronized隐藏了太多细节，是没办法实现的，在jdk层是有实现方式的。</p>
 <h3 id="破坏循环等待"><a href="#破坏循环等待" class="headerlink" title="破坏循环等待"></a>破坏循环等待</h3><p>提前计算好一个安全序列，按顺序申请资源就可以</p>
 <h2 id="后患"><a href="#后患" class="headerlink" title="后患"></a>后患</h2><p>在破坏占有并等待条件的时候，采用了主动轮询的方式，这是比较耗CPU资源的。所以我们需要采用线程主动通知的模式来处理。</p>
+<h2 id="从理论上解决死锁"><a href="#从理论上解决死锁" class="headerlink" title="从理论上解决死锁"></a>从理论上解决死锁</h2><h3 id="固定加锁顺序"><a href="#固定加锁顺序" class="headerlink" title="固定加锁顺序"></a>固定加锁顺序</h3><p>其实也是固定资源分配的顺序，大家排队拿东西，不抢就没事了</p>
+<h3 id="加大锁的细粒度"><a href="#加大锁的细粒度" class="headerlink" title="加大锁的细粒度"></a>加大锁的细粒度</h3><p>你懂得</p>
+<h3 id="控制锁的占用时间"><a href="#控制锁的占用时间" class="headerlink" title="控制锁的占用时间"></a>控制锁的占用时间</h3><p>也懂</p>
+<h3 id="直接不用锁"><a href="#直接不用锁" class="headerlink" title="直接不用锁"></a>直接不用锁</h3><p>这….</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>高效的并发和死锁是矛盾的，颗粒度低的锁可以保证并发量，但是会出现死锁。</p>
 <p>另外上文中的资源管理类Allocator和之前直接锁住Account.class是不同的，在范围上Account.class的范围更大，锁住了Account的一切操作，而Allocator只是保证了两个实例的同时分配。</p>
 
@@ -373,7 +377,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E4%BB%A3%E7%A0%81%E4%B8%8A%E8%A7%A3%E5%86%B3%E6%AD%BB%E9%94%81"><span class="nav-number">1.</span> <span class="nav-text">从代码上解决死锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%B4%E5%9D%8F%E5%8D%A0%E6%9C%89%E4%B8%94%E7%AD%89%E5%BE%85%E6%9D%A1%E4%BB%B6"><span class="nav-number">1.1.</span> <span class="nav-text">破坏占有且等待条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%B4%E5%9D%8F%E4%B8%8D%E5%8F%AF%E6%8A%A2%E5%8D%A0"><span class="nav-number">1.2.</span> <span class="nav-text">破坏不可抢占</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%B4%E5%9D%8F%E5%BE%AA%E7%8E%AF%E7%AD%89%E5%BE%85"><span class="nav-number">1.3.</span> <span class="nav-text">破坏循环等待</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8E%E6%82%A3"><span class="nav-number">2.</span> <span class="nav-text">后患</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E4%BB%A3%E7%A0%81%E4%B8%8A%E8%A7%A3%E5%86%B3%E6%AD%BB%E9%94%81"><span class="nav-number">1.</span> <span class="nav-text">从代码上解决死锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%B4%E5%9D%8F%E5%8D%A0%E6%9C%89%E4%B8%94%E7%AD%89%E5%BE%85%E6%9D%A1%E4%BB%B6"><span class="nav-number">1.1.</span> <span class="nav-text">破坏占有且等待条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%B4%E5%9D%8F%E4%B8%8D%E5%8F%AF%E6%8A%A2%E5%8D%A0"><span class="nav-number">1.2.</span> <span class="nav-text">破坏不可抢占</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%B4%E5%9D%8F%E5%BE%AA%E7%8E%AF%E7%AD%89%E5%BE%85"><span class="nav-number">1.3.</span> <span class="nav-text">破坏循环等待</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8E%E6%82%A3"><span class="nav-number">2.</span> <span class="nav-text">后患</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8E%E7%90%86%E8%AE%BA%E4%B8%8A%E8%A7%A3%E5%86%B3%E6%AD%BB%E9%94%81"><span class="nav-number">3.</span> <span class="nav-text">从理论上解决死锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E5%8A%A0%E9%94%81%E9%A1%BA%E5%BA%8F"><span class="nav-number">3.1.</span> <span class="nav-text">固定加锁顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A0%E5%A4%A7%E9%94%81%E7%9A%84%E7%BB%86%E7%B2%92%E5%BA%A6"><span class="nav-number">3.2.</span> <span class="nav-text">加大锁的细粒度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A7%E5%88%B6%E9%94%81%E7%9A%84%E5%8D%A0%E7%94%A8%E6%97%B6%E9%97%B4"><span class="nav-number">3.3.</span> <span class="nav-text">控制锁的占用时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E4%B8%8D%E7%94%A8%E9%94%81"><span class="nav-number">3.4.</span> <span class="nav-text">直接不用锁</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

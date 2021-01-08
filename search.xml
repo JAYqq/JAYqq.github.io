@@ -343,16 +343,20 @@
   <entry>
     <title>GIT分支管理</title>
     <url>/2020/10/05/GIT%E5%88%86%E6%94%AF%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<h2 id="GIT分支管理"><a href="#GIT分支管理" class="headerlink" title="GIT分支管理"></a>GIT分支管理</h2><h3 id="创建分支"><a href="#创建分支" class="headerlink" title="创建分支"></a>创建分支</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git branch dev</span><br><span class="line">或者是</span><br><span class="line">git checkout -b dev &#x2F;&#x2F;创建并切换到这个分支</span><br></pre></td></tr></table></figure>
+    <content><![CDATA[<h2 id="GIT分支管理"><a href="#GIT分支管理" class="headerlink" title="GIT分支管理"></a>GIT分支管理</h2><h3 id="创建分支"><a href="#创建分支" class="headerlink" title="创建分支"></a>创建分支</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git branch dev</span><br><span class="line"><span class="meta">#</span><span class="bash">或者是</span></span><br><span class="line">git checkout -b dev //创建并切换到这个分支</span><br></pre></td></tr></table></figure>
 
 <p>我们创建了分支以后，在当前分支创建一个demo.txt文件，然后加上一些内容，git add和git commit以后，在master分支下看不见demo.txt文件的，但是没有经过add和commit还是看得见的</p>
-<h3 id="删除分支"><a href="#删除分支" class="headerlink" title="删除分支"></a>删除分支</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git branch -d dev</span><br></pre></td></tr></table></figure>
+<h3 id="删除分支"><a href="#删除分支" class="headerlink" title="删除分支"></a>删除分支</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git branch -d dev</span><br></pre></td></tr></table></figure>
 
 
 
-<h3 id="合并分支"><a href="#合并分支" class="headerlink" title="合并分支"></a>合并分支</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git checkout master</span><br><span class="line">git merge -m &quot;描述&quot; dev</span><br><span class="line">git merge --no-ff   &#x2F;&#x2F;去掉快速合并，保留合并历史</span><br></pre></td></tr></table></figure>
+<h3 id="合并分支"><a href="#合并分支" class="headerlink" title="合并分支"></a>合并分支</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git checkout master</span><br><span class="line">git merge -m &quot;描述&quot; dev</span><br><span class="line">git merge --no-ff   //去掉快速合并，保留合并历史</span><br></pre></td></tr></table></figure>
 
 <p>切换到master分支，然后合并，在master分支下就可以看见dev分支修改的内容了</p>
+<h3 id="更新分支"><a href="#更新分支" class="headerlink" title="更新分支"></a>更新分支</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git pull --rebase origin &lt;branch&gt;</span><br><span class="line"><span class="meta">#</span><span class="bash">或者</span></span><br><span class="line">git fetch origin &lt;branch&gt;</span><br><span class="line">git merge FETCH_HEAD</span><br></pre></td></tr></table></figure>
+
+
+
 <h3 id="解决冲突"><a href="#解决冲突" class="headerlink" title="解决冲突"></a>解决冲突</h3><p>所谓冲突就是你在dev上修改了demo.txt，然后切换到master后又修改了demo.txt，然后git merge就会出现冲突，解决方案：</p>
 <ol>
 <li>git status查看冲突，git会提示你怎么发生冲突的</li>
@@ -1740,6 +1744,10 @@ chmod 600 ~/.ssh/authorized_keys
 <h3 id="破坏不可抢占"><a href="#破坏不可抢占" class="headerlink" title="破坏不可抢占"></a>破坏不可抢占</h3><p>synchronized隐藏了太多细节，是没办法实现的，在jdk层是有实现方式的。</p>
 <h3 id="破坏循环等待"><a href="#破坏循环等待" class="headerlink" title="破坏循环等待"></a>破坏循环等待</h3><p>提前计算好一个安全序列，按顺序申请资源就可以</p>
 <h2 id="后患"><a href="#后患" class="headerlink" title="后患"></a>后患</h2><p>在破坏占有并等待条件的时候，采用了主动轮询的方式，这是比较耗CPU资源的。所以我们需要采用线程主动通知的模式来处理。</p>
+<h2 id="从理论上解决死锁"><a href="#从理论上解决死锁" class="headerlink" title="从理论上解决死锁"></a>从理论上解决死锁</h2><h3 id="固定加锁顺序"><a href="#固定加锁顺序" class="headerlink" title="固定加锁顺序"></a>固定加锁顺序</h3><p>其实也是固定资源分配的顺序，大家排队拿东西，不抢就没事了</p>
+<h3 id="加大锁的细粒度"><a href="#加大锁的细粒度" class="headerlink" title="加大锁的细粒度"></a>加大锁的细粒度</h3><p>你懂得</p>
+<h3 id="控制锁的占用时间"><a href="#控制锁的占用时间" class="headerlink" title="控制锁的占用时间"></a>控制锁的占用时间</h3><p>也懂</p>
+<h3 id="直接不用锁"><a href="#直接不用锁" class="headerlink" title="直接不用锁"></a>直接不用锁</h3><p>这….</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>高效的并发和死锁是矛盾的，颗粒度低的锁可以保证并发量，但是会出现死锁。</p>
 <p>另外上文中的资源管理类Allocator和之前直接锁住Account.class是不同的，在范围上Account.class的范围更大，锁住了Account的一切操作，而Allocator只是保证了两个实例的同时分配。</p>
 ]]></content>
@@ -1766,7 +1774,7 @@ chmod 600 ~/.ssh/authorized_keys
 <li>同步队列（锁池）。所有线程都想调用synchronized方法，但是必须先抢到锁，所以同步队列中的线程处于竞争锁的状态。</li>
 <li>等待队列。假设一个线程A调用了某个对象的wait()方法，线程A就会释放该对象的锁（因为wait()方法必须出现在synchronized中，这样自然在执行wait()方法之前线程A就已经拥有了该对象的锁），同时 <strong>线程A就进入到了该对象的等待队列（等待池）中，此时线程A状态为Waiting</strong>。如果另外的一个线程调用了相同对象的notifyAll()方法，那么 处于该对象的<strong>等待池中的线程就会全部进入该对象的同步队列（锁池）中</strong>，准备争夺锁的拥有权。如果另外的一个线程调用了相同对象的notify()方法，那么 仅仅有一个处于该对象的等待池中的线程（随机）会进入该对象的同步队列（锁池）。</li>
 </ul>
-<h3 id="Code-Solution"><a href="#Code-Solution" class="headerlink" title="Code Solution"></a>Code Solution</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Allocator</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> List&lt;Object&gt; lst = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> Allocator allocator;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Allocator</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Allocator <span class="title">getAllocator</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(allocator == <span class="keyword">null</span>)&#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Allocator.class)&#123;</span><br><span class="line">                <span class="keyword">if</span>(allocator==<span class="keyword">null</span>)&#123;</span><br><span class="line">                    allocator = <span class="keyword">new</span> Allocator();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> allocator;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//主动轮询申请的写法</span></span><br><span class="line"><span class="comment">//    public synchronized boolean apply(Object from,Object to)&#123;</span></span><br><span class="line"><span class="comment">//        if(lst.contains(from) || lst.contains(to))&#123;</span></span><br><span class="line"><span class="comment">//            return false;</span></span><br><span class="line"><span class="comment">//        &#125;else&#123;</span></span><br><span class="line"><span class="comment">//            lst.add(from);</span></span><br><span class="line"><span class="comment">//            lst.add(to);</span></span><br><span class="line"><span class="comment">//        &#125;</span></span><br><span class="line"><span class="comment">//        return true;</span></span><br><span class="line"><span class="comment">//    &#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">apply</span><span class="params">(Object from,Object to)</span></span>&#123;</span><br><span class="line">        <span class="keyword">while</span>(lst.contains(from) || lst.contains(to))&#123;</span><br><span class="line">            <span class="keyword">try</span>&#123;</span><br><span class="line">                <span class="keyword">this</span>.wait();</span><br><span class="line">            &#125;<span class="keyword">catch</span> (Exception e)&#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        lst.add(from);</span><br><span class="line">        lst.add(to);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">free</span><span class="params">(Object from,Object to)</span></span>&#123;</span><br><span class="line">        lst.remove(from);</span><br><span class="line">        lst.remove(to);</span><br><span class="line">        <span class="keyword">this</span>.notifyAll();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Code-Solution"><a href="#Code-Solution" class="headerlink" title="Code Solution"></a>Code Solution</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Allocator</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> List&lt;Object&gt; lst = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> Allocator allocator;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Allocator</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Allocator <span class="title">getAllocator</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(allocator == <span class="keyword">null</span>)&#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Allocator.class)&#123;</span><br><span class="line">                <span class="keyword">if</span>(allocator==<span class="keyword">null</span>)&#123;</span><br><span class="line">                    allocator = <span class="keyword">new</span> Allocator();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> allocator;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//主动轮询申请的写法</span></span><br><span class="line"><span class="comment">//    public synchronized boolean apply(Object from,Object to)&#123;</span></span><br><span class="line"><span class="comment">//        if(lst.contains(from) || lst.contains(to))&#123;</span></span><br><span class="line"><span class="comment">//            return false;</span></span><br><span class="line"><span class="comment">//        &#125;else&#123;</span></span><br><span class="line"><span class="comment">//            lst.add(from);</span></span><br><span class="line"><span class="comment">//            lst.add(to);</span></span><br><span class="line"><span class="comment">//        &#125;</span></span><br><span class="line"><span class="comment">//        return true;</span></span><br><span class="line"><span class="comment">//    &#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">apply</span><span class="params">(Object from,Object to)</span></span>&#123;</span><br><span class="line">        <span class="keyword">while</span>(lst.contains(from) || lst.contains(to))&#123;</span><br><span class="line">            <span class="keyword">try</span>&#123;</span><br><span class="line">                <span class="keyword">this</span>.wait();</span><br><span class="line">            &#125;<span class="keyword">catch</span> (Exception e)&#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        lst.add(from);</span><br><span class="line">        lst.add(to);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">free</span><span class="params">(Object from,Object to)</span></span>&#123;</span><br><span class="line">        lst.remove(from);</span><br><span class="line">        lst.remove(to);</span><br><span class="line">        <span class="keyword">this</span>.notifyAll();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Account</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> money;</span><br><span class="line">    Allocator allocator = Allocator.getAllocator();</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Account</span><span class="params">(<span class="keyword">int</span> money)</span></span>&#123;<span class="keyword">this</span>.money =money;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setMoney</span><span class="params">(<span class="keyword">int</span> money)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.money = money;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getMoney</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.money;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">transfer</span><span class="params">(Account to,<span class="keyword">int</span> balance)</span></span>&#123;</span><br><span class="line">        allocator.apply(<span class="keyword">this</span>,to);</span><br><span class="line">        <span class="keyword">this</span>.money -= balance;</span><br><span class="line">        to.setMoney(to.getMoney()+balance);</span><br><span class="line">        allocator.free(<span class="keyword">this</span>,to);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException</span>&#123;</span><br><span class="line">	<span class="comment">// write your code here</span></span><br><span class="line">        Account account1 = <span class="keyword">new</span> Account(<span class="number">200</span>);</span><br><span class="line">        Account account2 = <span class="keyword">new</span> Account(<span class="number">300</span>);</span><br><span class="line">        <span class="comment">/*这里使用CountDownLaunch来等待所有线程执行完*/</span></span><br><span class="line">        CountDownLatch countDownLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">199</span>);</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">199</span>;i++)&#123;</span><br><span class="line">            <span class="keyword">new</span> Thread(()-&gt;&#123;</span><br><span class="line">                account1.transfer(account2,<span class="number">1</span>);</span><br><span class="line">                countDownLatch.countDown();</span><br><span class="line">            &#125;).start();</span><br><span class="line">        &#125;</span><br><span class="line">        countDownLatch.await();</span><br><span class="line">        System.out.println(<span class="string">&quot;account1:&quot;</span>+account1.getMoney());</span><br><span class="line">        System.out.println(<span class="string">&quot;account2:&quot;</span>+account2.getMoney());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h3 id="范式"><a href="#范式" class="headerlink" title="范式"></a>范式</h3><p>范式代表着规范，所以尽量按照规范来写。</p>
 <h4 id="等待者"><a href="#等待者" class="headerlink" title="等待者"></a>等待者</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">synchronized</span> (对象) &#123;</span><br><span class="line">    <span class="keyword">while</span> (不满足条件) &#123;</span><br><span class="line">        对象.wait()</span><br><span class="line">    &#125;</span><br><span class="line">    处理业务逻辑</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -2014,6 +2022,9 @@ chmod 600 ~/.ssh/authorized_keys
     <title>Java并发编程：并发问题之根本</title>
     <url>/2020/10/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E5%B9%B6%E5%8F%91%E9%97%AE%E9%A2%98%E4%B9%8B%E6%A0%B9%E6%9C%AC/</url>
     <content><![CDATA[<p>总结自王宝令老师的极客专栏</p>
+<h2 id="为什么要并发？"><a href="#为什么要并发？" class="headerlink" title="为什么要并发？"></a>为什么要并发？</h2><p>以我现有的知识回答这个问题（2021.1.6）</p>
+<p>在以前的单核时代，只有一个CPU，因此如何充分使用CPU的性能极其重要，在这种环境下，CPU的时间片策略轮流执行使得可以让多个程序轮流执行，不会在不同程序之间阻塞，这个多进程分时复用在操作系统的发展史上有着里程碑式的意义，但是单个程序内部的阻塞问题依然没有解决。</p>
+<p>随着多核时代的来临，理论上一个进程的多个线程可以运行在不同的CPU上，这时候多线程的模式可以把一个程序拆分成多个不同的任务，彼此不会恶性阻塞。这样一来，对CPU而言，每个程序都有多个线程去抢占CPU，CPU的利用率自然就上来了，而对程序而言，自己被拆分成多个任务同时执行，效率也大大提高，因此并发一定是利大于弊的一种技术提升。</p>
 <h2 id="并发世界的三大问题"><a href="#并发世界的三大问题" class="headerlink" title="并发世界的三大问题"></a>并发世界的三大问题</h2><h3 id="分工"><a href="#分工" class="headerlink" title="分工"></a>分工</h3><p>单线程模式下，一个长任务可能需要好几步才能完成，多线程之间的分工，可以将任务分成多个小块，提高了整个流水线的效率。</p>
 <p>涉及到线程创建的几种方式</p>
 <ul>
@@ -2027,20 +2038,25 @@ chmod 600 ~/.ssh/authorized_keys
 <h3 id="同步（协作）"><a href="#同步（协作）" class="headerlink" title="同步（协作）"></a>同步（协作）</h3><p>并发世界的同步其实就是线程之间的协作，当不同线程分工后，它们执行的不同任务之间一定有一些依赖关系存在。</p>
 <ul>
 <li><a href="http://scwmason.cn/2020/10/17/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E4%B8%80)/">sychronized</a>（互斥锁）</li>
-<li><a href="http://scwmason.cn/2020/10/20/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E4%B8%89)%E2%80%94%E4%BA%8B%E4%BB%B6%E9%80%9A%E7%9F%A5/">Lock&amp;condition</a>（条件）</li>
+<li><a href="http://scwmason.cn/2020/10/20/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E4%B8%89)%E2%80%94%E4%BA%8B%E4%BB%B6%E9%80%9A%E7%9F%A5/">Condition&amp;Notify</a>（条件）</li>
 <li><a href="http://scwmason.cn/2020/10/31/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%90%8C%E6%AD%A5%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9ACountDownLatch%20%E5%92%8C%20CyclicBarrier/">CountDownLatch</a>（计数器，用于等待多个线程结束）</li>
 <li><a href="http://scwmason.cn/2020/10/31/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%90%8C%E6%AD%A5%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9ACountDownLatch%20%E5%92%8C%20CyclicBarrier/">CyclicBarrier</a>（归零后能重新计数）</li>
 </ul>
 <p>最经典的线程之间的协作就是当当前线程满足了什么条件后，就唤醒另一线程。具体的条件随着不同的场景需要去修改，那么既然都是大同小异，一定有一套范式让我们去最佳实践，这就是 <strong>管程</strong>，这是一种解决并发问题的通用模型。</p>
 <h3 id="互斥"><a href="#互斥" class="headerlink" title="互斥"></a>互斥</h3><p>其实分工和同步可以说是在大部分场景下都是同时存在的，因为他们的目的是为了让程序的执行效率更高。而互斥，就是在高效率路上的阻碍，互斥要求的是 <strong>同一时刻只能有一个线程去访问共享变量</strong>。最常见的做法就是锁，但是锁的颗粒度太大会出现性能问题，大量线程等待；锁的颗粒度太小，会出现死锁。针对读多写少的场景，还有读写锁的优化，另外还有无锁化、CAS等技术。</p>
-<ul>
+<h4 id="锁技术（解决互斥的核心）"><a href="#锁技术（解决互斥的核心）" class="headerlink" title="锁技术（解决互斥的核心）"></a>锁技术（解决互斥的核心）</h4><ul>
 <li><a href="http://scwmason.cn/2020/10/24/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E2%80%94%E9%94%81%EF%BC%88%E4%B8%80%EF%BC%89/">AQS（锁的模板）</a></li>
 <li>ReentrantLock（可重入锁，互斥锁）</li>
 <li><a href="http://scwmason.cn/2020/10/28/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E5%88%9D%E8%AF%86%E8%AF%BB%E5%86%99%E9%94%81/">ReentrantReadWriteLock</a>（可重入读写锁，适合读多写少的场景，读锁乐观锁）</li>
 <li><a href="http://scwmason.cn/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/">StampedLock</a>（读锁是乐观读，允许读的同时有一个写线程运行，如果前后两次读数据不同，就升级到读锁，阻塞写线程保证数据安全）</li>
-<li><a href="http://scwmason.cn/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/">CAS</a>（无锁，乐观读的内部实现）</li>
 </ul>
-<h2 id="并发问题的三大源头"><a href="#并发问题的三大源头" class="headerlink" title="并发问题的三大源头"></a>并发问题的三大源头</h2><h3 id="缓存导致的可见性问题"><a href="#缓存导致的可见性问题" class="headerlink" title="缓存导致的可见性问题"></a>缓存导致的可见性问题</h3><p>多核时代，由于每个CPU都有自己的缓存机制，当CPU把数据从内存中读到自己的缓存中后，可能此时数据已经被另一线程所修改了，所以导致这个线程对修改的新数据不可见。</p>
+<h4 id="非锁技术"><a href="#非锁技术" class="headerlink" title="非锁技术"></a>非锁技术</h4><ul>
+<li><a href="http://scwmason.cn/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/">CAS</a>（无锁，原子类、乐观锁的内部实现）</li>
+<li>final（直接不共享变量）</li>
+<li>Thread Local（利用线程独有内存空间）</li>
+</ul>
+<h2 id="并发问题微观世界的三大源头"><a href="#并发问题微观世界的三大源头" class="headerlink" title="并发问题微观世界的三大源头"></a>并发问题微观世界的三大源头</h2><p>如果从操作系统层面去理解并发的问题，那么主要就是这三个问题。</p>
+<h3 id="缓存导致的可见性问题"><a href="#缓存导致的可见性问题" class="headerlink" title="缓存导致的可见性问题"></a>缓存导致的可见性问题</h3><p>多核时代，由于每个CPU都有自己的缓存机制，当CPU把数据从内存中读到自己的缓存中后，可能此时数据已经被另一线程所修改了，所以导致这个线程对修改的新数据不可见。</p>
 <h3 id="线程切换导致的原子性问题"><a href="#线程切换导致的原子性问题" class="headerlink" title="线程切换导致的原子性问题"></a>线程切换导致的原子性问题</h3><p>在时间片式的CPU执行时代，线程切换主要发生在：</p>
 <ul>
 <li>时间片用完后，需要做一次调度</li>
@@ -2056,6 +2072,63 @@ chmod 600 ~/.ssh/authorized_keys
 <p>如果在第一步执行完后发生线程切换，这就会导致数据的覆盖问题，这才是 <strong>原子性问题的根本</strong></p>
 <h3 id="编译优化导致的有序性问题"><a href="#编译优化导致的有序性问题" class="headerlink" title="编译优化导致的有序性问题"></a>编译优化导致的有序性问题</h3><p>违直觉容易导致诡异 Bug 的技术，就是编译优化导致的，可能会改变代码执行顺序，可以尝试使用volatile关键字尝试解决。</p>
 <p>学习并发编程最重要的就是：跳出来看全局，理完框架后，一个个跳进去追本质。</p>
+<h2 id="并发问题宏观世界的三大问题"><a href="#并发问题宏观世界的三大问题" class="headerlink" title="并发问题宏观世界的三大问题"></a>并发问题宏观世界的三大问题</h2><h3 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h3><p>“线程安全”到底说的是什么？从上面微观的角度看，线程安全就是保证上面三个问题不会出现。</p>
+<p>什么时候会出现线程安全？ <strong>存在共享数据并且会发生变化时，才会有线程问题</strong>，多个线程去竞争共享数据的现象叫做 <strong>数据竞争</strong>。</p>
+<p>因此为了解决竞争可以有：加锁、ThreadLocalStorage、final、无锁这些技术</p>
+<p>然而，并不是加锁就安全了，<strong>当程序的执行结果依赖于线程的执行顺序时就会出现竞态问题</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">long</span> count = <span class="number">0</span>;</span><br><span class="line">  <span class="function"><span class="keyword">synchronized</span> <span class="keyword">long</span> <span class="title">get</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> count；</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">long</span> v)</span></span>&#123;</span><br><span class="line">    count = v;</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">add10K</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> idx = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span>(idx++ &lt; <span class="number">10000</span>) &#123;</span><br><span class="line">      set(get()+<span class="number">1</span>)      </span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面两个线程同时add10k，虽然get和set都是互斥操作，但是 <strong>当出现组合操作的时候就要注意了</strong>，如果线程A执行完get后释放锁，线程B抢到了锁那么线程B执行get的count还是没有变。</p>
+<h3 id="活跃性问题"><a href="#活跃性问题" class="headerlink" title="活跃性问题"></a>活跃性问题</h3><p>ok，如果我们是通过锁保护了线程的安全，那么除了数据的安全问题，对于整个线程还有啥问题？活跃性问题包括死锁、活锁还有饥饿。</p>
+<p>解决死锁，就是要去破坏死锁的三个条件，见文章：<a href="http://scwmason.cn/2020/10/19/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E4%BA%8C)/">死锁</a></p>
+<p>解决活锁，可以让线程随机等待一个时间，避免无脑重复尝试。</p>
+<p>解决饥饿（想象分饭），可以从：</p>
+<ol>
+<li>保证资源充足（饭管够）</li>
+<li>公平分配资源（每个人都能分到）</li>
+<li>避免持锁的线程长时间运行（避免有人分了很多很多饭）</li>
+</ol>
+<p>1和3在现实中比较难控制，资源的数量不是我们定的，线程的执行时间和具体的任务有关，无法控制，短了长了都有影响，因此方案2才是最适合的，java中有个叫 <strong>公平锁</strong>的。</p>
+<h3 id="性能问题"><a href="#性能问题" class="headerlink" title="性能问题"></a>性能问题</h3><p>多线程确实能充分发挥多核CPU的性能，但是线程的切换也是需要成本的，因此需要权衡利弊，解决性能问题主要有：</p>
+<ol>
+<li>无锁。又是TLS、final、乐观锁</li>
+<li>减少锁持有的时间，避免没必要的占用公共资源</li>
+</ol>
+<p>性能指标主要：</p>
+<ol>
+<li>吞吐量：server每秒能处理的请求数量</li>
+<li>延迟：请求响应时间</li>
+<li>并发量：server能同时在线的连接数量</li>
+</ol>
+<h2 id="Java并发世界的拯救者：并发容器"><a href="#Java并发世界的拯救者：并发容器" class="headerlink" title="Java并发世界的拯救者：并发容器"></a>Java并发世界的拯救者：并发容器</h2><p>java.util.concurrent 包下有很多的并发容器可以保证线程安全，这些容器再多，也逃不出以下几种：</p>
+<h3 id="List"><a href="#List" class="headerlink" title="List"></a>List</h3><ul>
+<li>CopyOnWriteArrayList（写时复制）</li>
+</ul>
+<h3 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h3><ul>
+<li>ConcurrentHashMap</li>
+<li>ConcurrentSkipListMap</li>
+</ul>
+<h3 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h3><ul>
+<li>ConcurrentSkipListSet</li>
+<li>CopyOnWriteArraySet</li>
+</ul>
+<h3 id="Queue"><a href="#Queue" class="headerlink" title="Queue"></a>Queue</h3><h4 id="双端阻塞队列"><a href="#双端阻塞队列" class="headerlink" title="双端阻塞队列"></a>双端阻塞队列</h4><ul>
+<li>LinkedBlockingDeque</li>
+</ul>
+<h4 id="单端阻塞队列"><a href="#单端阻塞队列" class="headerlink" title="单端阻塞队列"></a>单端阻塞队列</h4><ul>
+<li>ArrayBlockingQueue</li>
+<li>LinkedBlockingQueue</li>
+<li>SynchronousQueue</li>
+<li>LinkedTransferQueue</li>
+<li>PriorityBlockingQueue</li>
+<li>DelayQueue</li>
+</ul>
+<h4 id="单端非阻塞队列"><a href="#单端非阻塞队列" class="headerlink" title="单端非阻塞队列"></a>单端非阻塞队列</h4><ul>
+<li>ConcurrentLinkedQueue</li>
+</ul>
+<h4 id="双端非阻塞队列"><a href="#双端非阻塞队列" class="headerlink" title="双端非阻塞队列"></a>双端非阻塞队列</h4><ul>
+<li>ConcurrentLinkedDequeue</li>
+</ul>
 ]]></content>
       <categories>
         <category>Java并发编程</category>

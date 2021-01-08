@@ -28,7 +28,7 @@
 <meta property="og:description" content="《Java并发编程艺术mini》——并发编程基础、极客《Java并发编程实战》记录">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-10-15T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-11-24T01:28:15.517Z">
+<meta property="article:modified_time" content="2021-01-08T15:06:43.595Z">
 <meta property="article:author" content="Mason">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="并发编程">
@@ -230,7 +230,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-11-24 09:28:15" itemprop="dateModified" datetime="2020-11-24T09:28:15+08:00">2020-11-24</time>
+                <time title="Modified: 2021-01-08 23:06:43" itemprop="dateModified" datetime="2021-01-08T23:06:43+08:00">2021-01-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -276,6 +276,9 @@
 
       
         <p>总结自王宝令老师的极客专栏</p>
+<h2 id="为什么要并发？"><a href="#为什么要并发？" class="headerlink" title="为什么要并发？"></a>为什么要并发？</h2><p>以我现有的知识回答这个问题（2021.1.6）</p>
+<p>在以前的单核时代，只有一个CPU，因此如何充分使用CPU的性能极其重要，在这种环境下，CPU的时间片策略轮流执行使得可以让多个程序轮流执行，不会在不同程序之间阻塞，这个多进程分时复用在操作系统的发展史上有着里程碑式的意义，但是单个程序内部的阻塞问题依然没有解决。</p>
+<p>随着多核时代的来临，理论上一个进程的多个线程可以运行在不同的CPU上，这时候多线程的模式可以把一个程序拆分成多个不同的任务，彼此不会恶性阻塞。这样一来，对CPU而言，每个程序都有多个线程去抢占CPU，CPU的利用率自然就上来了，而对程序而言，自己被拆分成多个任务同时执行，效率也大大提高，因此并发一定是利大于弊的一种技术提升。</p>
 <h2 id="并发世界的三大问题"><a href="#并发世界的三大问题" class="headerlink" title="并发世界的三大问题"></a>并发世界的三大问题</h2><h3 id="分工"><a href="#分工" class="headerlink" title="分工"></a>分工</h3><p>单线程模式下，一个长任务可能需要好几步才能完成，多线程之间的分工，可以将任务分成多个小块，提高了整个流水线的效率。</p>
 <p>涉及到线程创建的几种方式</p>
 <ul>
@@ -289,20 +292,25 @@
 <h3 id="同步（协作）"><a href="#同步（协作）" class="headerlink" title="同步（协作）"></a>同步（协作）</h3><p>并发世界的同步其实就是线程之间的协作，当不同线程分工后，它们执行的不同任务之间一定有一些依赖关系存在。</p>
 <ul>
 <li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/17/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E4%B8%80)/">sychronized</a>（互斥锁）</li>
-<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/20/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E4%B8%89)%E2%80%94%E4%BA%8B%E4%BB%B6%E9%80%9A%E7%9F%A5/">Lock&amp;condition</a>（条件）</li>
+<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/20/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E4%B8%89)%E2%80%94%E4%BA%8B%E4%BB%B6%E9%80%9A%E7%9F%A5/">Condition&amp;Notify</a>（条件）</li>
 <li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/31/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%90%8C%E6%AD%A5%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9ACountDownLatch%20%E5%92%8C%20CyclicBarrier/">CountDownLatch</a>（计数器，用于等待多个线程结束）</li>
 <li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/31/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%90%8C%E6%AD%A5%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9ACountDownLatch%20%E5%92%8C%20CyclicBarrier/">CyclicBarrier</a>（归零后能重新计数）</li>
 </ul>
 <p>最经典的线程之间的协作就是当当前线程满足了什么条件后，就唤醒另一线程。具体的条件随着不同的场景需要去修改，那么既然都是大同小异，一定有一套范式让我们去最佳实践，这就是 <strong>管程</strong>，这是一种解决并发问题的通用模型。</p>
 <h3 id="互斥"><a href="#互斥" class="headerlink" title="互斥"></a>互斥</h3><p>其实分工和同步可以说是在大部分场景下都是同时存在的，因为他们的目的是为了让程序的执行效率更高。而互斥，就是在高效率路上的阻碍，互斥要求的是 <strong>同一时刻只能有一个线程去访问共享变量</strong>。最常见的做法就是锁，但是锁的颗粒度太大会出现性能问题，大量线程等待；锁的颗粒度太小，会出现死锁。针对读多写少的场景，还有读写锁的优化，另外还有无锁化、CAS等技术。</p>
-<ul>
+<h4 id="锁技术（解决互斥的核心）"><a href="#锁技术（解决互斥的核心）" class="headerlink" title="锁技术（解决互斥的核心）"></a>锁技术（解决互斥的核心）</h4><ul>
 <li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/24/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E2%80%94%E9%94%81%EF%BC%88%E4%B8%80%EF%BC%89/">AQS（锁的模板）</a></li>
 <li>ReentrantLock（可重入锁，互斥锁）</li>
 <li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/28/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E5%88%9D%E8%AF%86%E8%AF%BB%E5%86%99%E9%94%81/">ReentrantReadWriteLock</a>（可重入读写锁，适合读多写少的场景，读锁乐观锁）</li>
 <li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%EF%BC%9A%E6%AF%94%E8%AF%BB%E5%86%99%E9%94%81%E6%9B%B4%E5%BF%AB%E7%9A%84StampedLock/">StampedLock</a>（读锁是乐观读，允许读的同时有一个写线程运行，如果前后两次读数据不同，就升级到读锁，阻塞写线程保证数据安全）</li>
-<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/">CAS</a>（无锁，乐观读的内部实现）</li>
 </ul>
-<h2 id="并发问题的三大源头"><a href="#并发问题的三大源头" class="headerlink" title="并发问题的三大源头"></a>并发问题的三大源头</h2><h3 id="缓存导致的可见性问题"><a href="#缓存导致的可见性问题" class="headerlink" title="缓存导致的可见性问题"></a>缓存导致的可见性问题</h3><p>多核时代，由于每个CPU都有自己的缓存机制，当CPU把数据从内存中读到自己的缓存中后，可能此时数据已经被另一线程所修改了，所以导致这个线程对修改的新数据不可见。</p>
+<h4 id="非锁技术"><a href="#非锁技术" class="headerlink" title="非锁技术"></a>非锁技术</h4><ul>
+<li><a target="_blank" rel="noopener" href="http://scwmason.cn/2020/11/05/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E2%80%94%E5%8E%9F%E5%AD%90%E7%B1%BB%E4%B8%AD%E7%9A%84%E6%97%A0%E9%94%81%E8%AE%BE%E8%AE%A1/">CAS</a>（无锁，原子类、乐观锁的内部实现）</li>
+<li>final（直接不共享变量）</li>
+<li>Thread Local（利用线程独有内存空间）</li>
+</ul>
+<h2 id="并发问题微观世界的三大源头"><a href="#并发问题微观世界的三大源头" class="headerlink" title="并发问题微观世界的三大源头"></a>并发问题微观世界的三大源头</h2><p>如果从操作系统层面去理解并发的问题，那么主要就是这三个问题。</p>
+<h3 id="缓存导致的可见性问题"><a href="#缓存导致的可见性问题" class="headerlink" title="缓存导致的可见性问题"></a>缓存导致的可见性问题</h3><p>多核时代，由于每个CPU都有自己的缓存机制，当CPU把数据从内存中读到自己的缓存中后，可能此时数据已经被另一线程所修改了，所以导致这个线程对修改的新数据不可见。</p>
 <h3 id="线程切换导致的原子性问题"><a href="#线程切换导致的原子性问题" class="headerlink" title="线程切换导致的原子性问题"></a>线程切换导致的原子性问题</h3><p>在时间片式的CPU执行时代，线程切换主要发生在：</p>
 <ul>
 <li>时间片用完后，需要做一次调度</li>
@@ -318,6 +326,63 @@
 <p>如果在第一步执行完后发生线程切换，这就会导致数据的覆盖问题，这才是 <strong>原子性问题的根本</strong></p>
 <h3 id="编译优化导致的有序性问题"><a href="#编译优化导致的有序性问题" class="headerlink" title="编译优化导致的有序性问题"></a>编译优化导致的有序性问题</h3><p>违直觉容易导致诡异 Bug 的技术，就是编译优化导致的，可能会改变代码执行顺序，可以尝试使用volatile关键字尝试解决。</p>
 <p>学习并发编程最重要的就是：跳出来看全局，理完框架后，一个个跳进去追本质。</p>
+<h2 id="并发问题宏观世界的三大问题"><a href="#并发问题宏观世界的三大问题" class="headerlink" title="并发问题宏观世界的三大问题"></a>并发问题宏观世界的三大问题</h2><h3 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h3><p>“线程安全”到底说的是什么？从上面微观的角度看，线程安全就是保证上面三个问题不会出现。</p>
+<p>什么时候会出现线程安全？ <strong>存在共享数据并且会发生变化时，才会有线程问题</strong>，多个线程去竞争共享数据的现象叫做 <strong>数据竞争</strong>。</p>
+<p>因此为了解决竞争可以有：加锁、ThreadLocalStorage、final、无锁这些技术</p>
+<p>然而，并不是加锁就安全了，<strong>当程序的执行结果依赖于线程的执行顺序时就会出现竞态问题</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">long</span> count = <span class="number">0</span>;</span><br><span class="line">  <span class="function"><span class="keyword">synchronized</span> <span class="keyword">long</span> <span class="title">get</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> count；</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">long</span> v)</span></span>&#123;</span><br><span class="line">    count = v;</span><br><span class="line">  &#125; </span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">add10K</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> idx = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span>(idx++ &lt; <span class="number">10000</span>) &#123;</span><br><span class="line">      set(get()+<span class="number">1</span>)      </span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面两个线程同时add10k，虽然get和set都是互斥操作，但是 <strong>当出现组合操作的时候就要注意了</strong>，如果线程A执行完get后释放锁，线程B抢到了锁那么线程B执行get的count还是没有变。</p>
+<h3 id="活跃性问题"><a href="#活跃性问题" class="headerlink" title="活跃性问题"></a>活跃性问题</h3><p>ok，如果我们是通过锁保护了线程的安全，那么除了数据的安全问题，对于整个线程还有啥问题？活跃性问题包括死锁、活锁还有饥饿。</p>
+<p>解决死锁，就是要去破坏死锁的三个条件，见文章：<a target="_blank" rel="noopener" href="http://scwmason.cn/2020/10/19/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(%E4%BA%8C)/">死锁</a></p>
+<p>解决活锁，可以让线程随机等待一个时间，避免无脑重复尝试。</p>
+<p>解决饥饿（想象分饭），可以从：</p>
+<ol>
+<li>保证资源充足（饭管够）</li>
+<li>公平分配资源（每个人都能分到）</li>
+<li>避免持锁的线程长时间运行（避免有人分了很多很多饭）</li>
+</ol>
+<p>1和3在现实中比较难控制，资源的数量不是我们定的，线程的执行时间和具体的任务有关，无法控制，短了长了都有影响，因此方案2才是最适合的，java中有个叫 <strong>公平锁</strong>的。</p>
+<h3 id="性能问题"><a href="#性能问题" class="headerlink" title="性能问题"></a>性能问题</h3><p>多线程确实能充分发挥多核CPU的性能，但是线程的切换也是需要成本的，因此需要权衡利弊，解决性能问题主要有：</p>
+<ol>
+<li>无锁。又是TLS、final、乐观锁</li>
+<li>减少锁持有的时间，避免没必要的占用公共资源</li>
+</ol>
+<p>性能指标主要：</p>
+<ol>
+<li>吞吐量：server每秒能处理的请求数量</li>
+<li>延迟：请求响应时间</li>
+<li>并发量：server能同时在线的连接数量</li>
+</ol>
+<h2 id="Java并发世界的拯救者：并发容器"><a href="#Java并发世界的拯救者：并发容器" class="headerlink" title="Java并发世界的拯救者：并发容器"></a>Java并发世界的拯救者：并发容器</h2><p>java.util.concurrent 包下有很多的并发容器可以保证线程安全，这些容器再多，也逃不出以下几种：</p>
+<h3 id="List"><a href="#List" class="headerlink" title="List"></a>List</h3><ul>
+<li>CopyOnWriteArrayList（写时复制）</li>
+</ul>
+<h3 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h3><ul>
+<li>ConcurrentHashMap</li>
+<li>ConcurrentSkipListMap</li>
+</ul>
+<h3 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h3><ul>
+<li>ConcurrentSkipListSet</li>
+<li>CopyOnWriteArraySet</li>
+</ul>
+<h3 id="Queue"><a href="#Queue" class="headerlink" title="Queue"></a>Queue</h3><h4 id="双端阻塞队列"><a href="#双端阻塞队列" class="headerlink" title="双端阻塞队列"></a>双端阻塞队列</h4><ul>
+<li>LinkedBlockingDeque</li>
+</ul>
+<h4 id="单端阻塞队列"><a href="#单端阻塞队列" class="headerlink" title="单端阻塞队列"></a>单端阻塞队列</h4><ul>
+<li>ArrayBlockingQueue</li>
+<li>LinkedBlockingQueue</li>
+<li>SynchronousQueue</li>
+<li>LinkedTransferQueue</li>
+<li>PriorityBlockingQueue</li>
+<li>DelayQueue</li>
+</ul>
+<h4 id="单端非阻塞队列"><a href="#单端非阻塞队列" class="headerlink" title="单端非阻塞队列"></a>单端非阻塞队列</h4><ul>
+<li>ConcurrentLinkedQueue</li>
+</ul>
+<h4 id="双端非阻塞队列"><a href="#双端非阻塞队列" class="headerlink" title="双端非阻塞队列"></a>双端非阻塞队列</h4><ul>
+<li>ConcurrentLinkedDequeue</li>
+</ul>
 
     </div>
 
@@ -403,7 +468,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E4%B8%96%E7%95%8C%E7%9A%84%E4%B8%89%E5%A4%A7%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">并发世界的三大问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B7%A5"><span class="nav-number">1.1.</span> <span class="nav-text">分工</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%EF%BC%88%E5%8D%8F%E4%BD%9C%EF%BC%89"><span class="nav-number">1.2.</span> <span class="nav-text">同步（协作）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%92%E6%96%A5"><span class="nav-number">1.3.</span> <span class="nav-text">互斥</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E9%97%AE%E9%A2%98%E7%9A%84%E4%B8%89%E5%A4%A7%E6%BA%90%E5%A4%B4"><span class="nav-number">2.</span> <span class="nav-text">并发问题的三大源头</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E5%AF%BC%E8%87%B4%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E9%97%AE%E9%A2%98"><span class="nav-number">2.1.</span> <span class="nav-text">缓存导致的可见性问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%88%87%E6%8D%A2%E5%AF%BC%E8%87%B4%E7%9A%84%E5%8E%9F%E5%AD%90%E6%80%A7%E9%97%AE%E9%A2%98"><span class="nav-number">2.2.</span> <span class="nav-text">线程切换导致的原子性问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9C%89%E5%BA%8F%E6%80%A7%E9%97%AE%E9%A2%98"><span class="nav-number">2.3.</span> <span class="nav-text">编译优化导致的有序性问题</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%B9%B6%E5%8F%91%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">为什么要并发？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E4%B8%96%E7%95%8C%E7%9A%84%E4%B8%89%E5%A4%A7%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">并发世界的三大问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B7%A5"><span class="nav-number">2.1.</span> <span class="nav-text">分工</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%EF%BC%88%E5%8D%8F%E4%BD%9C%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">同步（协作）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%92%E6%96%A5"><span class="nav-number">2.3.</span> <span class="nav-text">互斥</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%94%81%E6%8A%80%E6%9C%AF%EF%BC%88%E8%A7%A3%E5%86%B3%E4%BA%92%E6%96%A5%E7%9A%84%E6%A0%B8%E5%BF%83%EF%BC%89"><span class="nav-number">2.3.1.</span> <span class="nav-text">锁技术（解决互斥的核心）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%9E%E9%94%81%E6%8A%80%E6%9C%AF"><span class="nav-number">2.3.2.</span> <span class="nav-text">非锁技术</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E9%97%AE%E9%A2%98%E5%BE%AE%E8%A7%82%E4%B8%96%E7%95%8C%E7%9A%84%E4%B8%89%E5%A4%A7%E6%BA%90%E5%A4%B4"><span class="nav-number">3.</span> <span class="nav-text">并发问题微观世界的三大源头</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E5%AF%BC%E8%87%B4%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E9%97%AE%E9%A2%98"><span class="nav-number">3.1.</span> <span class="nav-text">缓存导致的可见性问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%88%87%E6%8D%A2%E5%AF%BC%E8%87%B4%E7%9A%84%E5%8E%9F%E5%AD%90%E6%80%A7%E9%97%AE%E9%A2%98"><span class="nav-number">3.2.</span> <span class="nav-text">线程切换导致的原子性问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9C%89%E5%BA%8F%E6%80%A7%E9%97%AE%E9%A2%98"><span class="nav-number">3.3.</span> <span class="nav-text">编译优化导致的有序性问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E9%97%AE%E9%A2%98%E5%AE%8F%E8%A7%82%E4%B8%96%E7%95%8C%E7%9A%84%E4%B8%89%E5%A4%A7%E9%97%AE%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">并发问题宏观世界的三大问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E5%85%A8%E6%80%A7"><span class="nav-number">4.1.</span> <span class="nav-text">安全性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B4%BB%E8%B7%83%E6%80%A7%E9%97%AE%E9%A2%98"><span class="nav-number">4.2.</span> <span class="nav-text">活跃性问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98"><span class="nav-number">4.3.</span> <span class="nav-text">性能问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java%E5%B9%B6%E5%8F%91%E4%B8%96%E7%95%8C%E7%9A%84%E6%8B%AF%E6%95%91%E8%80%85%EF%BC%9A%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8"><span class="nav-number">5.</span> <span class="nav-text">Java并发世界的拯救者：并发容器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#List"><span class="nav-number">5.1.</span> <span class="nav-text">List</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Map"><span class="nav-number">5.2.</span> <span class="nav-text">Map</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Set"><span class="nav-number">5.3.</span> <span class="nav-text">Set</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Queue"><span class="nav-number">5.4.</span> <span class="nav-text">Queue</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8C%E7%AB%AF%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97"><span class="nav-number">5.4.1.</span> <span class="nav-text">双端阻塞队列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8D%95%E7%AB%AF%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97"><span class="nav-number">5.4.2.</span> <span class="nav-text">单端阻塞队列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8D%95%E7%AB%AF%E9%9D%9E%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97"><span class="nav-number">5.4.3.</span> <span class="nav-text">单端非阻塞队列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8C%E7%AB%AF%E9%9D%9E%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97"><span class="nav-number">5.4.4.</span> <span class="nav-text">双端非阻塞队列</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
